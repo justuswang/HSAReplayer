@@ -75,10 +75,10 @@ protected:
 
 class Replayer {
 public:
-  Replayer() { return; }
+  Replayer();
   ~Replayer();
 
-  void LoadVectorFile(const char *fileName, hsa_agent_t agent);
+  void LoadVectorFile(const char *fileName);
 
   template<typename T>
   void RetrieveData(std::vector<T> &data, std::string &str);
@@ -91,6 +91,7 @@ public:
 private:
   std::vector<VCSection*> m_sections;
   void ShowKernelArgs(void);
+  hsa_agent_t m_agent;
 };
 
 #endif /* __REPLAYER_H__ */

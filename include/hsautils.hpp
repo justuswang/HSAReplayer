@@ -21,7 +21,7 @@ class HSAInit {
 
 class HSAAgent {
   public:
-    HSAAgent(hsa_device_type_t type);
+    HSAAgent(hsa_device_type_t type = HSA_DEVICE_TYPE_GPU);
     hsa_agent_t Get(void) { return m_agent; }
 
   private:

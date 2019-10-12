@@ -102,6 +102,12 @@ T VCSection::GetValue(uint32_t offset)
 // Replayer
 // ==============================
 
+Replayer::Replayer()
+{
+  HSAAgent agent;
+  m_agent = agent.Get();
+}
+
 Replayer::~Replayer()
 {
   // clean up resource before hsa shutdown
@@ -123,7 +129,7 @@ uint64_t Replayer::GetHexValue(std::string &line, const char *key)
     return value;
 }
 
-void Replayer::LoadVectorFile(const char *fileName, hsa_agent_t agent)
+void Replayer::LoadVectorFile(const char *fileName)
 {
   std::ifstream vc_file(fileName);
   std::string line;
@@ -134,17 +140,17 @@ void Replayer::LoadVectorFile(const char *fileName, hsa_agent_t agent)
     std::getline(vc_file, line);
     if (line.find("@aql_pkt") != std::string::npos) {
       type = VC_AQL;
-      sec = new VCSection(type, 64, agent, MEM_SYS);
+      sec = new VCSection(type, 64, m_agent, MEM_SYS);
       m_sections.push_back(sec);
     } else if (line.find("@kernel_obj") != std::string::npos) {
       type = VC_KERN_OBJ;
-      sec = new VCSection(type, GetHexValue(line, "bytes"), agent, MEM_LOC);
+      sec = new VCSection(type, GetHexValue(line, "bytes"), m_agent, MEM_LOC);
       m_sections.push_back(sec);
     } else if (line.find("@kernel_arg_pool") != std::string::npos) {
       type = VC_KERN_ARG_POOL;
       sec = new VCSection(type,
                           GetHexValue(line, "args_num"),
-                          GetHexValue(line, "bytes"), agent, MEM_KERNARG);
+                          GetHexValue(line, "bytes"), m_agent, MEM_KERNARG);
       m_sections.push_back(sec);
     }
     else if (line.find("@kernel_arg") != std::string::npos) {
@@ -153,7 +159,7 @@ void Replayer::LoadVectorFile(const char *fileName, hsa_agent_t agent)
                           GetHexValue(line, "arg_idx"),
                           GetHexValue(line, "offset"),
                           (GetHexValue(line, "addr") != 0),
-                          GetHexValue(line, "bytes"), agent, MEM_SYS);
+                          GetHexValue(line, "bytes"), m_agent, MEM_SYS);
       if (sec->IsAddr()) {
         std::cout << "Kernel Arg: " << sec->Index() << std::endl;
         std::cout << "addr: 0x" << std::hex << (uint64_t)sec->As<void*>() << std::endl;
@@ -167,6 +173,7 @@ void Replayer::LoadVectorFile(const char *fileName, hsa_agent_t agent)
     if (sec != NULL)
       sec->SetValue(line);
   }
+
   UpdateKernelArgPool();
 }
 
@@ -229,11 +236,10 @@ int main(int argc, char **argv)
 {
   HSAInit hsaInit;
 
-  HSAAgent agent(HSA_DEVICE_TYPE_GPU);
   Replayer replayer;
+  replayer.LoadVectorFile("/home/zjunwei/tmp/clang_vectoradd_co_v10.rpl");
 
-  replayer.LoadVectorFile("/home/zjunwei/tmp/clang_vectoradd_co_v10.rpl", agent.Get());
-
+  HSAAgent agent;
   hsa_kernel_dispatch_packet_t packet;
   HSAQueue queue(agent.Get(), 64, HSA_QUEUE_TYPE_SINGLE);
 

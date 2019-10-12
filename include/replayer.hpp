@@ -76,18 +76,21 @@ protected:
 class Replayer {
 public:
   Replayer() { return; }
+  ~Replayer();
 
-  void LoadVectorFile(const char *fileName, hsa_agent_t agent, std::vector<VCSection*> &sections);
+  void LoadVectorFile(const char *fileName, hsa_agent_t agent);
 
   template<typename T>
   void RetrieveData(std::vector<T> &data, std::string &str);
   uint64_t GetHexValue(std::string &line, const char *key);
 
-  void UpdateKernelArgPool(std::vector<VCSection*> &sections);
-  VCSection* GetSection(std::vector<VCSection*> &sections, VCSectionType type);
+  void UpdateKernelArgPool();
+  VCSection* GetSection(VCSectionType type);
+  void ShowSection(VCSectionType type);
 
 private:
-
+  std::vector<VCSection*> m_sections;
+  void ShowKernelArgs(void);
 };
 
 #endif /* __REPLAYER_H__ */

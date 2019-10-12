@@ -1,7 +1,7 @@
 #include "replayer.hpp"
 
 // ==============================
-//   VCSection
+// VCSection
 // ==============================
 
 VCSection::~VCSection()
@@ -99,8 +99,16 @@ T VCSection::GetValue(uint32_t offset)
 }
 
 // ==============================
-//   Replayer
+// Replayer
 // ==============================
+
+Replayer::~Replayer()
+{
+  // clean up resource before hsa shutdown
+  for (int i = 0; i < (int)m_sections.size(); i++) {
+    m_sections[i]->~VCSection();
+  }
+}
 
 uint64_t Replayer::GetHexValue(std::string &line, const char *key)
 {
@@ -115,7 +123,7 @@ uint64_t Replayer::GetHexValue(std::string &line, const char *key)
     return value;
 }
 
-void Replayer::LoadVectorFile(const char *fileName, hsa_agent_t agent, std::vector<VCSection*> &sections)
+void Replayer::LoadVectorFile(const char *fileName, hsa_agent_t agent)
 {
   std::ifstream vc_file(fileName);
   std::string line;
@@ -127,17 +135,17 @@ void Replayer::LoadVectorFile(const char *fileName, hsa_agent_t agent, std::vect
     if (line.find("@aql_pkt") != std::string::npos) {
       type = VC_AQL;
       sec = new VCSection(type, 64, agent, MEM_SYS);
-      sections.push_back(sec);
+      m_sections.push_back(sec);
     } else if (line.find("@kernel_obj") != std::string::npos) {
       type = VC_KERN_OBJ;
       sec = new VCSection(type, GetHexValue(line, "bytes"), agent, MEM_LOC);
-      sections.push_back(sec);
+      m_sections.push_back(sec);
     } else if (line.find("@kernel_arg_pool") != std::string::npos) {
       type = VC_KERN_ARG_POOL;
       sec = new VCSection(type,
                           GetHexValue(line, "args_num"),
                           GetHexValue(line, "bytes"), agent, MEM_KERNARG);
-      sections.push_back(sec);
+      m_sections.push_back(sec);
     }
     else if (line.find("@kernel_arg") != std::string::npos) {
       type = VC_KERN_ARG;
@@ -150,7 +158,7 @@ void Replayer::LoadVectorFile(const char *fileName, hsa_agent_t agent, std::vect
         std::cout << "Kernel Arg: " << sec->Index() << std::endl;
         std::cout << "addr: 0x" << std::hex << (uint64_t)sec->As<void*>() << std::endl;
       }
-      sections.push_back(sec);
+      m_sections.push_back(sec);
     }
     
     if ((type == VC_NULL) && line.empty())
@@ -159,15 +167,15 @@ void Replayer::LoadVectorFile(const char *fileName, hsa_agent_t agent, std::vect
     if (sec != NULL)
       sec->SetValue(line);
   }
-  UpdateKernelArgPool(sections);
+  UpdateKernelArgPool();
 }
 
-void Replayer::UpdateKernelArgPool(std::vector<VCSection*> &sections)
+void Replayer::UpdateKernelArgPool()
 {
-  VCSection *pool = GetSection(sections, VC_KERN_ARG_POOL);
+  VCSection *pool = GetSection(VC_KERN_ARG_POOL);
 
-  for (int i = 0; i < (int)sections.size(); i++) {
-      VCSection *sec = sections[i];
+  for (int i = 0; i < (int)m_sections.size(); i++) {
+      VCSection *sec = m_sections[i];
       if (sec->SType() == VC_KERN_ARG) {
           if (sec->IsAddr()) {
               pool->SetValue<uint64_t>((uint64_t)sec->As<void*>(), sec->Offset());
@@ -183,45 +191,22 @@ void Replayer::UpdateKernelArgPool(std::vector<VCSection*> &sections)
   }
 }
 
-VCSection* Replayer::GetSection(std::vector<VCSection*> &sections, VCSectionType type)
+VCSection* Replayer::GetSection(VCSectionType type)
 {
-  for (int i = 0; i < (int)sections.size(); i++) {
-    if (sections[i]->SType() == type) {
-        return sections[i];
+  for (int i = 0; i < (int)m_sections.size(); i++) {
+    if (m_sections[i]->SType() == type) {
+        return m_sections[i];
     }
   }
   return NULL;
 }
 
-int main(int argc, char **argv)
+void Replayer::ShowKernelArgs()
 {
-  HSAInit hsaInit;
-
-  HSAAgent agent(HSA_DEVICE_TYPE_GPU);
-  Replayer replayer;
-  std::vector<VCSection*> sections;
-
-  replayer.LoadVectorFile("/home/zjunwei/tmp/clang_vectoradd_co_v10.rpl", agent.Get(), sections);
-
-  hsa_kernel_dispatch_packet_t packet;
-  HSAQueue queue(agent.Get(), 64, HSA_QUEUE_TYPE_SINGLE);
-
-  VCSection *sec_aql = replayer.GetSection(sections, VC_AQL);
-  VCSection *sec_kern_obj = replayer.GetSection(sections, VC_KERN_OBJ);
-  VCSection *sec_pool = replayer.GetSection(sections, VC_KERN_ARG_POOL);
-
-  auto init_pkg_vector_add = [&]() {
-    memcpy(&packet, sec_aql->As<uchar*>(), sizeof(packet));
-    packet.kernarg_address = sec_pool->As<void*>();
-    packet.kernel_object = (uint64_t)sec_kern_obj->As<void*>();
-  };
-
-  init_pkg_vector_add();
-  queue.SubmitPacket(packet);
-
-  // print kernel args
-  for (int i = 0; i < (int)sections.size(); i++) {
-    VCSection* sec = sections[i];
+  if (m_sections.size() == 0)
+    return;
+  for (int i = 0; i < (int)m_sections.size(); i++) {
+    VCSection* sec = m_sections[i];
     if (sec->SType() == VC_KERN_ARG) {
       std::cout << sec->Name() << ":" << sec->Index() << std::endl;
       if (sec->IsAddr()) {
@@ -232,11 +217,40 @@ int main(int argc, char **argv)
       }
     }
   }
+}
 
-  // clean up resource before hsa shutdown
-  for (int i = 0; i < (int)sections.size(); i++) {
-    sections[i]->~VCSection();
-  }
+void Replayer::ShowSection(VCSectionType type)
+{
+  if (type == VC_KERN_ARG)
+    ShowKernelArgs();
+}
+
+int main(int argc, char **argv)
+{
+  HSAInit hsaInit;
+
+  HSAAgent agent(HSA_DEVICE_TYPE_GPU);
+  Replayer replayer;
+
+  replayer.LoadVectorFile("/home/zjunwei/tmp/clang_vectoradd_co_v10.rpl", agent.Get());
+
+  hsa_kernel_dispatch_packet_t packet;
+  HSAQueue queue(agent.Get(), 64, HSA_QUEUE_TYPE_SINGLE);
+
+  VCSection *sec_aql = replayer.GetSection(VC_AQL);
+  VCSection *sec_kern_obj = replayer.GetSection(VC_KERN_OBJ);
+  VCSection *sec_pool = replayer.GetSection(VC_KERN_ARG_POOL);
+
+  auto init_pkg_vector_add = [&]() {
+    memcpy(&packet, sec_aql->As<uchar*>(), sizeof(packet));
+    packet.kernarg_address = sec_pool->As<void*>();
+    packet.kernel_object = (uint64_t)sec_kern_obj->As<void*>();
+  };
+
+  init_pkg_vector_add();
+  queue.SubmitPacket(packet);
+
+  replayer.ShowSection(VC_KERN_ARG);
 
   return 0;
 }

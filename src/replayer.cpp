@@ -6,8 +6,8 @@
 
 VCSection::~VCSection()
 {
-    if (m_mem)
-        m_mem->~HSAMemoryObject();
+  if (m_mem)
+    m_mem->~HSAMemoryObject();
 }
 
 VCSection::VCSection(VCSectionType secType, uint32_t size, hsa_agent_t agent, MemoryRegionType memType)
@@ -103,6 +103,7 @@ T VCSection::GetValue(uint32_t offset)
 // ==============================
 
 Replayer::Replayer()
+  : m_queue(NULL)
 {
   HSAAgent agent;
   m_agent = agent.Get();
@@ -113,6 +114,10 @@ Replayer::~Replayer()
   // clean up resource before hsa shutdown
   for (int i = 0; i < (int)m_sections.size(); i++) {
     m_sections[i]->~VCSection();
+  }
+  if (m_queue) {
+    m_queue->~HSAQueue();
+    m_queue = NULL;
   }
 }
 
@@ -232,30 +237,36 @@ void Replayer::ShowSection(VCSectionType type)
     ShowKernelArgs();
 }
 
+void Replayer::CreateQueue(uint32_t size, hsa_queue_type32_t type)
+{
+  if (m_queue != NULL)
+    return;
+  m_queue = new HSAQueue(m_agent, size, type);
+}
+
+void Replayer::SubmitPacket(void)
+{
+  hsa_kernel_dispatch_packet_t packet;
+
+  VCSection *sec_aql = GetSection(VC_AQL);
+  VCSection *sec_kern_obj = GetSection(VC_KERN_OBJ);
+  VCSection *sec_pool = GetSection(VC_KERN_ARG_POOL);
+
+  memcpy(&packet, sec_aql->As<uchar*>(), sizeof(packet));
+  packet.kernarg_address = sec_pool->As<void*>();
+  packet.kernel_object = (uint64_t)sec_kern_obj->As<void*>();
+
+  m_queue->SubmitPacket(packet);
+}
+
 int main(int argc, char **argv)
 {
   HSAInit hsaInit;
 
   Replayer replayer;
   replayer.LoadVectorFile("/home/zjunwei/tmp/clang_vectoradd_co_v10.rpl");
-
-  HSAAgent agent;
-  hsa_kernel_dispatch_packet_t packet;
-  HSAQueue queue(agent.Get(), 64, HSA_QUEUE_TYPE_SINGLE);
-
-  VCSection *sec_aql = replayer.GetSection(VC_AQL);
-  VCSection *sec_kern_obj = replayer.GetSection(VC_KERN_OBJ);
-  VCSection *sec_pool = replayer.GetSection(VC_KERN_ARG_POOL);
-
-  auto init_pkg_vector_add = [&]() {
-    memcpy(&packet, sec_aql->As<uchar*>(), sizeof(packet));
-    packet.kernarg_address = sec_pool->As<void*>();
-    packet.kernel_object = (uint64_t)sec_kern_obj->As<void*>();
-  };
-
-  init_pkg_vector_add();
-  queue.SubmitPacket(packet);
-
+  replayer.CreateQueue(64, HSA_QUEUE_TYPE_SINGLE);
+  replayer.SubmitPacket();
   replayer.ShowSection(VC_KERN_ARG);
 
   return 0;

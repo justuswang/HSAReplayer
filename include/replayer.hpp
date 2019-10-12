@@ -79,19 +79,21 @@ public:
   ~Replayer();
 
   void LoadVectorFile(const char *fileName);
-
-  template<typename T>
-  void RetrieveData(std::vector<T> &data, std::string &str);
-  uint64_t GetHexValue(std::string &line, const char *key);
-
   void UpdateKernelArgPool();
+
+  uint64_t GetHexValue(std::string &line, const char *key);
   VCSection* GetSection(VCSectionType type);
   void ShowSection(VCSectionType type);
 
+  void CreateQueue(uint32_t size, hsa_queue_type32_t type);
+  void SubmitPacket(void);
+
 private:
-  std::vector<VCSection*> m_sections;
   void ShowKernelArgs(void);
+
+  std::vector<VCSection*> m_sections;
   hsa_agent_t m_agent;
+  HSAQueue *m_queue;
 };
 
 #endif /* __REPLAYER_H__ */

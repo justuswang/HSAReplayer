@@ -17,6 +17,18 @@ void Options::PrintHelp()
   std::cout << helpInfo << std::endl;
 }
 
+VCSectionType Options::TypePop()
+{
+  VCSectionType type = VC_NULL;
+
+  if (m_type.size() == 0)
+    return type;
+
+  type = m_type[0];
+  m_type.erase(m_type.begin());
+  return type;
+};
+
 int Options::get_opts(int argc, char **argv)
 {
   int opt;
@@ -30,7 +42,7 @@ int Options::get_opts(int argc, char **argv)
     case 'p':
       if (atoi(optarg) > (int)VC_TYPE_MAX)
         goto err;
-      m_type = (VCSectionType)atoi(optarg);
+      m_type.push_back((VCSectionType)atoi(optarg));
       break;
     case 'h':
       goto err;
@@ -38,6 +50,11 @@ int Options::get_opts(int argc, char **argv)
       goto err;
     }
   }
+
+  // debug
+  //m_fileName = "/home/zjunwei/tmp/clang_vectoradd_co_v10.rpl";
+
+  m_type_cnt = m_type.size();
   if (m_fileName.empty()) {
     std::cerr << "No file to open!" << std::endl;
     goto err;

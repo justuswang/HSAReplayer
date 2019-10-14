@@ -145,10 +145,15 @@ void Replayer::PrintSection(VCSectionType type)
 {
   if ((type == VC_NULL) || (m_sections.size() == 0))
     return;
-  if (type == VC_KERN_ARG)
+  if (type == VC_KERN_ARG) {
     ShowKernelArgs();
-  else
+  } else if (type == VC_TYPE_MAX) {
+    for (int i = 0; i < (int)m_sections.size(); i++) {
+        std::cout << *(m_sections[i]) << std::endl;
+    }
+  } else {
     std::cout << *GetSection(type) << std::endl;
+  }
 }
 
 void Replayer::CreateQueue(uint32_t size, hsa_queue_type32_t type)

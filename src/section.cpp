@@ -1,4 +1,5 @@
 #include "section.hpp"
+#include <iomanip>
 
 VCSection::~VCSection()
 {
@@ -40,6 +41,24 @@ void VCSection::SetValue(std::string &str)
   }
 }
 
+std::ostream& VCSection::Print(std::ostream &out)
+{
+  if (!Allocated()) {
+    out << "No data to print!" << std::endl;
+    return out;
+  }
+  out << Name() << ":" << std::endl;
+  for (int i = 0; i < (int)Number<uint32_t>(); i++)
+    out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::endl;
+
+  return out;
+}
+
+std::ostream& operator<< (std::ostream &out, VCSection &sec)
+{
+  return sec.Print(out);
+}
+
 /**
  * free gpu memory as it's allocated by VCKernArg
  * then VCSection will not free it later, it's freed here already.
@@ -69,4 +88,22 @@ VCKernArg::VCKernArg(uint32_t index,
     } else {
         m_value = 0;
     }
+}
+
+std::ostream& VCKernArg::Print(std::ostream &out)
+{
+  out << Name() << ":" << Index() << std::endl;
+  if (IsAddr()) {
+    if (!Allocated()) {
+      out << "No data to print!" << std::endl;
+      return out;
+    }
+    for (int i = 0; i < (int)Number<uint32_t>(); i++)
+      //out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::endl;
+      out << As<float*>()[i] << std::endl;
+  } else {
+      out << Value() << std::endl;
+  }
+
+  return out;
 }

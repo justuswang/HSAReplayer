@@ -110,26 +110,21 @@ VCSection* Replayer::GetSection(VCSectionType type)
 
 void Replayer::ShowKernelArgs()
 {
-  if (m_sections.size() == 0)
-    return;
   for (int i = 0; i < (int)m_sections.size(); i++) {
     VCSection* sec = m_sections[i];
-    if (sec->SType() == VC_KERN_ARG) {
-      std::cout << sec->Name() << ":" << sec->Index() << std::endl;
-      if (sec->IsAddr()) {
-        for (int j = 0; j < (int)sec->Number<uint32_t>(); j++)
-          std::cout << sec->As<float*>()[j] << std::endl;
-      } else {
-          std::cout << sec->Value() << std::endl;
-      }
-    }
+    if (sec->SType() == VC_KERN_ARG)
+      std::cout << *sec << std::endl;
   }
 }
 
 void Replayer::ShowSection(VCSectionType type)
 {
+  if (m_sections.size() == 0)
+    return;
   if (type == VC_KERN_ARG)
     ShowKernelArgs();
+  else
+    std::cout << *GetSection(type) << std::endl;
 }
 
 void Replayer::CreateQueue(uint32_t size, hsa_queue_type32_t type)
@@ -143,13 +138,9 @@ void Replayer::SubmitPacket(void)
 {
   hsa_kernel_dispatch_packet_t packet;
 
-  VCSection *sec_aql = GetSection(VC_AQL);
-  VCSection *sec_kern_obj = GetSection(VC_KERN_OBJ);
-  VCSection *sec_pool = GetSection(VC_KERN_ARG_POOL);
-
-  memcpy(&packet, sec_aql->As<uchar*>(), sizeof(packet));
-  packet.kernarg_address = sec_pool->As<void*>();
-  packet.kernel_object = (uint64_t)sec_kern_obj->As<void*>();
+  memcpy(&packet, GetSection(VC_AQL)->As<uchar*>(), sizeof(packet));
+  packet.kernarg_address = GetSection(VC_KERN_ARG_POOL)->As<void*>();
+  packet.kernel_object = (uint64_t)GetSection(VC_KERN_OBJ)->As<void*>();
 
   m_queue->SubmitPacket(packet);
 }

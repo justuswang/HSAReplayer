@@ -37,6 +37,9 @@ public:
     uint32_t Size() { return m_size; }
     void SetValue(std::string &str);
     bool OutOfMemory(uint32_t pos);
+    bool Allocated() { return m_mem != NULL; }
+
+    friend std::ostream& operator<< (std::ostream &out, VCSection &sec);
 
     virtual VCDataType DType() { return VC_INVALID; }
     virtual uint32_t Offset() { return 0; }
@@ -44,6 +47,7 @@ public:
     virtual void SetValue(uint32_t value) { return; }
     virtual uint32_t Value() { return 0; }
     virtual bool IsAddr() { return VC_ADDR; }
+    virtual std::ostream& Print(std::ostream &out);
 
     // The implementation of a non-specialized template must be visible to a translation unit that uses it.
     // https://stackoverflow.com/questions/10632251/undefined-reference-to-template-function
@@ -89,12 +93,14 @@ public:
               uint32_t size, hsa_agent_t agent, MemoryRegionType memType);
     ~VCKernArg(); 
 
+
     VCDataType DType() { return m_dtype; }
     uint32_t Offset() { return m_offset; }
     uint32_t Index() { return m_index; }
     void SetValue(uint32_t value) { m_value = value; }
     uint32_t Value() { return m_value; }
     bool IsAddr() { return m_is_addr; }
+    std::ostream& Print(std::ostream &out);
 
 private:
     VCDataType m_dtype;

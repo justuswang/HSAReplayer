@@ -19,6 +19,7 @@ VCSection::VCSection(VCSectionType secType, uint32_t size, hsa_agent_t agent, Me
     m_mem = new HSAMemoryObject(m_size, agent, memType);
     m_pos = 0;
   }
+  m_seperator = "======================";
 }
 
 bool VCSection::OutOfMemory(uint32_t pos)
@@ -48,6 +49,7 @@ std::ostream& VCSection::Print(std::ostream &out)
     return out;
   }
   out << Name() << ":" << std::endl;
+  out << m_seperator << std::endl;
   for (int i = 0; i < (int)Number<uint32_t>(); i++)
     out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::endl;
 
@@ -93,6 +95,7 @@ VCKernArg::VCKernArg(uint32_t index,
 std::ostream& VCKernArg::Print(std::ostream &out)
 {
   out << Name() << ":" << Index() << std::endl;
+  out << m_seperator << std::endl;
   if (IsAddr()) {
     if (!Allocated()) {
       out << "No data to print!" << std::endl;

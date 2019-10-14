@@ -84,6 +84,7 @@ protected:
     uint32_t m_size;
     HSAMemoryObject *m_mem;
     uint32_t m_pos;
+    std::string m_seperator;
 };
 
 class VCKernArg : public VCSection {

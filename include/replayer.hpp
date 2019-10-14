@@ -13,12 +13,12 @@ public:
   Replayer();
   ~Replayer();
 
-  void LoadVectorFile(const char *fileName);
+  int LoadVectorFile(const char *fileName);
   void UpdateKernelArgPool();
 
   uint64_t GetHexValue(std::string &line, const char *key);
   VCSection* GetSection(VCSectionType type);
-  void ShowSection(VCSectionType type);
+  void PrintSection(VCSectionType type);
 
   void CreateQueue(uint32_t size, hsa_queue_type32_t type);
   void SubmitPacket(void);

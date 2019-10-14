@@ -32,13 +32,36 @@ uint64_t Replayer::GetHexValue(std::string &line, const char *key)
     return value;
 }
 
-void Replayer::LoadVectorFile(const char *fileName)
+int Replayer::LoadVectorFile(const char *fileName)
 {
+  auto SanityCheck = [&]() {
+    std::ifstream inputFile(fileName);
+    VCSectionType type = VC_NULL;
+    std::string line;
+    if (!inputFile.is_open()) {
+      std::cerr << "Failed to open file: " << fileName << std::endl;
+      return -1;
+    }
+    while (!inputFile.eof()) {
+      std::getline(inputFile, line);
+      if (line.find("@aql_pkt") != std::string::npos)
+        type = VC_AQL;
+    }
+    if (type == VC_AQL)
+      return 0;
+    else {
+      std::cerr << "Unsupported format!" << std::endl;
+      return -1;
+    }
+  };
+
   std::ifstream vc_file(fileName);
   std::string line;
   VCSectionType type = VC_NULL;
   VCSection *sec = NULL;
 
+  if (SanityCheck() != 0)
+      return -1;
   while (!vc_file.eof()) {
     std::getline(vc_file, line);
     if (line.find("@aql_pkt") != std::string::npos) {
@@ -60,10 +83,10 @@ void Replayer::LoadVectorFile(const char *fileName)
                           GetHexValue(line, "offset"),
                           (GetHexValue(line, "addr") != 0),
                           GetHexValue(line, "bytes"), m_agent, MEM_SYS);
-      if (sec->IsAddr()) {
-        std::cout << "Kernel Arg: " << sec->Index() << std::endl;
-        std::cout << "addr: 0x" << std::hex << (uint64_t)sec->As<void*>() << std::endl;
-      }
+      //if (sec->IsAddr()) {
+      //  std::cout << "Kernel Arg: " << sec->Index() << std::endl;
+      //  std::cout << "addr: 0x" << std::hex << (uint64_t)sec->As<void*>() << std::endl;
+      //}
       m_sections.push_back(sec);
     }
     
@@ -75,6 +98,7 @@ void Replayer::LoadVectorFile(const char *fileName)
   }
 
   UpdateKernelArgPool();
+  return 0;
 }
 
 void Replayer::UpdateKernelArgPool()
@@ -92,10 +116,10 @@ void Replayer::UpdateKernelArgPool()
       }
   }
 
-  std::cout << "Pools: " << std::endl;
-  for (size_t j = 0; j < pool->Number<uint32_t>(); j++) {
-      std::cout << std::hex << pool->As<uint32_t*>()[j] << std::endl;
-  }
+  //std::cout << "Pools: " << std::endl;
+  //for (size_t j = 0; j < pool->Number<uint32_t>(); j++) {
+  //    std::cout << std::hex << pool->As<uint32_t*>()[j] << std::endl;
+  //}
 }
 
 VCSection* Replayer::GetSection(VCSectionType type)
@@ -117,9 +141,9 @@ void Replayer::ShowKernelArgs()
   }
 }
 
-void Replayer::ShowSection(VCSectionType type)
+void Replayer::PrintSection(VCSectionType type)
 {
-  if (m_sections.size() == 0)
+  if ((type == VC_NULL) || (m_sections.size() == 0))
     return;
   if (type == VC_KERN_ARG)
     ShowKernelArgs();

@@ -12,7 +12,7 @@ enum VCSectionType {
   VC_KERN_OBJ,
   VC_KERN_ARG_POOL,
   VC_KERN_ARG,
-  VC_NUM,
+  VC_TYPE_MAX,
 };
 
 enum VCDataType {
@@ -26,7 +26,7 @@ public:
     VCSection(VCSectionType secType, uint32_t size, hsa_agent_t agent, MemoryRegionType memType);
     virtual ~VCSection(); // call VCKernArg firstly
 
-    const std::string SectionName[VC_NUM] = {
+    const std::string SectionName[VC_TYPE_MAX] = {
         "AQL",
         "Kernel Object",
         "Kernel Arg Pool",

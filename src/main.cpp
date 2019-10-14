@@ -6,7 +6,7 @@ int main(int argc, char **argv)
 
   Replayer replayer;
   replayer.LoadVectorFile("/home/zjunwei/tmp/clang_vectoradd_co_v10.rpl");
-  replayer.CreateQueue(64, HSA_QUEUE_TYPE_SINGLE);
+  replayer.CreateQueue(64, HSA_QUEUE_TYPE_MULTI);
   replayer.SubmitPacket();
   replayer.ShowSection(VC_KERN_ARG);
 

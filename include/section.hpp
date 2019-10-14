@@ -16,6 +16,7 @@ enum VCSectionType {
 };
 
 enum VCDataType {
+    VC_INVALID = -1,
     VC_ADDR = 1,
     VC_VAL,
 };
@@ -23,11 +24,7 @@ enum VCDataType {
 class VCSection {
 public:
     VCSection(VCSectionType secType, uint32_t size, hsa_agent_t agent, MemoryRegionType memType);
-    VCSection(VCSectionType secType, uint32_t num, uint32_t size, hsa_agent_t agent, MemoryRegionType memType);
-    VCSection(VCSectionType secType, uint32_t index,
-              uint32_t offset, bool isAddr,
-              uint32_t size, hsa_agent_t agent, MemoryRegionType memType);
-    ~VCSection();
+    virtual ~VCSection(); // call VCKernArg firstly
 
     const std::string SectionName[VC_NUM] = {
         "AQL",
@@ -38,17 +35,15 @@ public:
     std::string Name(void) const { return SectionName[m_stype]; }
     VCSectionType SType() { return m_stype; }
     uint32_t Size() { return m_size; }
-    bool IsAddr() { return m_is_addr; }
-    uint32_t NumberOfIndex() { return m_arg_total_index; }
-
-    VCDataType DType() { return m_dtype; } // KernelArg
-    uint32_t Offset() { return m_arg_offset; } // KernelArg
-    uint32_t Index() { return m_arg_index; } // KernelArg
-    void SetValue(uint32_t value) { m_arg_value = value; }; // KernelArg
-    uint32_t Value() { return m_arg_value; } // KernelArg
-
     void SetValue(std::string &str);
     bool OutOfMemory(uint32_t pos);
+
+    virtual VCDataType DType() { return VC_INVALID; }
+    virtual uint32_t Offset() { return 0; }
+    virtual uint32_t Index() { return 0; }
+    virtual void SetValue(uint32_t value) { return; }
+    virtual uint32_t Value() { return 0; }
+    virtual bool IsAddr() { return VC_ADDR; }
 
     // The implementation of a non-specialized template must be visible to a translation unit that uses it.
     // https://stackoverflow.com/questions/10632251/undefined-reference-to-template-function
@@ -82,14 +77,31 @@ public:
 
 protected:
     VCSectionType m_stype;
-    VCDataType m_dtype; // KernelArg
-    uint32_t m_arg_index; // KernelArg
-    uint32_t m_arg_total_index; // KernelArg
-    uint32_t m_arg_offset; // KernelArg
-    uint32_t m_arg_value; // KernelArg
     uint32_t m_size;
     HSAMemoryObject *m_mem;
     uint32_t m_pos;
+};
+
+class VCKernArg : public VCSection {
+public:
+    VCKernArg(uint32_t index,
+              uint32_t offset, bool isAddr,
+              uint32_t size, hsa_agent_t agent, MemoryRegionType memType);
+    ~VCKernArg(); 
+
+    VCDataType DType() { return m_dtype; }
+    uint32_t Offset() { return m_offset; }
+    uint32_t Index() { return m_index; }
+    void SetValue(uint32_t value) { m_value = value; }
+    uint32_t Value() { return m_value; }
+    bool IsAddr() { return m_is_addr; }
+
+private:
+    VCDataType m_dtype;
+    uint32_t m_index;
+    uint32_t m_total_index;
+    uint32_t m_offset;
+    uint32_t m_value;
     bool m_is_addr;
 };
 

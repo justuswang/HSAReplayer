@@ -51,22 +51,18 @@ void Replayer::LoadVectorFile(const char *fileName)
       m_sections.push_back(sec);
     } else if (line.find("@kernel_arg_pool") != std::string::npos) {
       type = VC_KERN_ARG_POOL;
-      sec = new VCSection(type,
-                          GetHexValue(line, "args_num"),
-                          GetHexValue(line, "bytes"), m_agent, MEM_KERNARG);
+      sec = new VCSection(type, GetHexValue(line, "bytes"), m_agent, MEM_KERNARG);
       m_sections.push_back(sec);
     }
     else if (line.find("@kernel_arg") != std::string::npos) {
       type = VC_KERN_ARG;
-      sec = new VCSection(type,
-                          GetHexValue(line, "arg_idx"),
+      sec = new VCKernArg(GetHexValue(line, "arg_idx"),
                           GetHexValue(line, "offset"),
                           (GetHexValue(line, "addr") != 0),
                           GetHexValue(line, "bytes"), m_agent, MEM_SYS);
       if (sec->IsAddr()) {
         std::cout << "Kernel Arg: " << sec->Index() << std::endl;
         std::cout << "addr: 0x" << std::hex << (uint64_t)sec->As<void*>() << std::endl;
-        sec->SetValue<uint64_t>((uint64_t)sec->As<void*>(), sec->Offset());
       }
       m_sections.push_back(sec);
     }

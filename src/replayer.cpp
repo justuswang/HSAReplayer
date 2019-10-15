@@ -190,8 +190,11 @@ void Replayer::PrintSection(VCSectionType type, std::vector<KernArgDataType> *ar
   if (type == VC_KERN_ARG) {
     PrintKernArgs(argsType);
   } else if (type == VC_TYPE_MAX) {
-    for (int i = 0; i < (int)m_sections.size(); i++)
+    for (int i = 0; i < (int)m_sections.size(); i++) {
+        if (m_sections[i]->SType() != VC_KERN_ARG)
         std::cout << *(m_sections[i]) << std::endl;
+    }
+    PrintKernArgs(argsType);
   } else {
     std::cout << *GetSection(type) << std::endl;
   }

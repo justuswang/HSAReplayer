@@ -162,43 +162,36 @@ void Replayer::PrintKernArg(int index, KernArgDataType argsType)
     std::cerr << "Invalid kernel argement type!" << std::endl;
     return;
   }
-
   GetKernArg(index)->Print(argsType);
 }
 
-void Replayer::PrintKernArgs(std::vector<KernArgDataType> &argsType)
+void Replayer::PrintKernArgs(std::vector<KernArgDataType> *argsType)
 {
-  if (argsType.size() > GetSection(VC_KERN_ARG_POOL)->ArgsNum()) {
+  if (argsType == NULL) {
+    ShowKernelArgs();
+    return;
+  }
+  if (argsType->size() > GetSection(VC_KERN_ARG_POOL)->ArgsNum()) {
     std::cerr << "Invalid kernel argement type list!" << std::endl;
     return;
   }
-
   for (int i = 0; i < (int)m_sections.size(); i++) {
     VCSection* sec = m_sections[i];
     if (sec->SType() == VC_KERN_ARG)
-      sec->Print(argsType.at(sec->Index()));
+      sec->Print(argsType->at(sec->Index()));
   }
 }
 
-void Replayer::PrintSection(VCSectionType type)
+void Replayer::PrintSection(VCSectionType type, std::vector<KernArgDataType> *argsType)
 {
-  std::vector<KernArgDataType> argsType = {
-    KA_FLOAT,
-    KA_FLOAT,
-    KA_FLOAT,
-    KA_INT,
-    KA_INT,
-  };
-
   if ((type == VC_NULL) || (m_sections.size() == 0))
     return;
+
   if (type == VC_KERN_ARG) {
-    ShowKernelArgs();
-    //PrintKernArgs(argsType);
+    PrintKernArgs(argsType);
   } else if (type == VC_TYPE_MAX) {
-    for (int i = 0; i < (int)m_sections.size(); i++) {
+    for (int i = 0; i < (int)m_sections.size(); i++)
         std::cout << *(m_sections[i]) << std::endl;
-    }
   } else {
     std::cout << *GetSection(type) << std::endl;
   }

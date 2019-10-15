@@ -19,7 +19,7 @@ int main(int argc, char **argv)
   replayer.SubmitPacket();
 
   for (int i = 0; i < g_opts.TypeNum(); i++) {
-    replayer.PrintSection(g_opts.TypePop());
+    replayer.PrintSection(g_opts.TypePop(), g_opts.KernArgTypes());
   }
 
   return 0;

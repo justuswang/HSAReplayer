@@ -5,12 +5,14 @@ Options g_opts;
 Options::Options()
 {
   m_defaultFileName = "./vc.rpl";
+  m_defaultJsonFile = "./ka.json";
 }
 
 void Options::PrintHelp()
 {
   std::string helpInfo = m_progName + " -i <file> -p <section type>\n" +
     "  -i input file name to load\n" +
+    "  -j input json file to parse kernel args data type\n" +
     "  -p print section info\n\
      0: AQL packet\n\
      1: Kernel Object\n\
@@ -20,6 +22,35 @@ void Options::PrintHelp()
     "  -h show this help info";
 
   std::cout << helpInfo << std::endl;
+}
+
+using json = nlohmann::json;
+
+void Options::ParseKernArg(const char *type)
+{
+  if (strncmp(type, "float", sizeof("float")-1) == 0)
+    kernArgs.push_back(KA_FLOAT);
+  else if (strncmp(type, "int", sizeof("int")-1) == 0)
+    kernArgs.push_back(KA_INT);
+  else if (strncmp(type, "double", sizeof("double")-1) == 0)
+    kernArgs.push_back(KA_DOUBLE);
+  else if (strncmp(type, "uint32", sizeof("uint32")-1) == 0)
+    kernArgs.push_back(KA_UINT32);
+}
+
+void Options::ParseJson()
+{
+  std::ifstream f(m_jsonFile);
+  if (!f.is_open())
+    return;
+
+  json j = json::parse(f);
+  //std::cout << "version: " << j["version"] << std::endl;
+  //std::cout << "kernel args: " << j["kernel_args"].size() << std::endl;
+  for (int i = 0; i < (int)j["kernel_args"].size(); i++) {
+    std::string str = j["kernel_args"][i][1].dump();
+    ParseKernArg((const char*)str.substr(1, str.size() - 2).c_str());
+  }
 }
 
 VCSectionType Options::TypePop()
@@ -39,10 +70,13 @@ int Options::get_opts(int argc, char **argv)
   int opt;
   SetName(&argv[0]);
 
-  while ((opt = getopt(argc, argv, "i:p:h")) != -1) {
+  while ((opt = getopt(argc, argv, "i:j:p:h")) != -1) {
     switch (opt) {
     case 'i':
       m_fileName = optarg;
+      break;
+    case 'j':
+      m_jsonFile = optarg;
       break;
     case 'p':
       if (atoi(optarg) > (int)VC_TYPE_MAX)
@@ -62,8 +96,14 @@ int Options::get_opts(int argc, char **argv)
   m_type_cnt = m_type.size();
   if (m_fileName.empty()) {
     m_fileName = m_defaultFileName;
-    std::cout << "Open default file: " << m_fileName << std::endl;
+    std::cout << "Try to open default file: " << m_fileName << std::endl;
   }
+  if (m_jsonFile.empty()) {
+    m_jsonFile = m_defaultJsonFile;
+    std::cout << "Try to open default json file: " << m_jsonFile << std::endl;
+  }
+  ParseJson();
+
   return 0;
 err:
   PrintHelp();

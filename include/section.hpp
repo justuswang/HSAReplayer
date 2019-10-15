@@ -25,6 +25,7 @@ enum KernArgDataType {
     KA_INT = 0,
     KA_FLOAT,
     KA_DOUBLE,
+    KA_UINT32,
     KA_MAX,
 };
 

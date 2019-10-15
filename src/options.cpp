@@ -11,8 +11,8 @@ Options::Options()
 void Options::PrintHelp()
 {
   std::string helpInfo = m_progName + " -i <file> -p <section type>\n" +
-    "  -i input file name to load\n" +
-    "  -j input json file to parse kernel args data type\n" +
+    "  -i input file name to load (default ./vc.rpl)\n"
+    "  -j input json file to parse kernel args data type (default ./ka.json)\n"
     "  -p print section info\n\
      0: AQL packet\n\
      1: Kernel Object\n\

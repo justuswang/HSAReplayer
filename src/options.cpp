@@ -94,7 +94,6 @@ int Options::get_opts(int argc, char **argv)
     }
   }
 
-  m_type_cnt = m_type.size();
   if (m_fileName.empty()) {
     m_fileName = m_defaultFileName;
     std::cout << "Try to open default file: " << m_fileName << std::endl;
@@ -103,6 +102,11 @@ int Options::get_opts(int argc, char **argv)
     m_jsonFile = m_defaultJsonFile;
     std::cout << "Try to open default json file: " << m_jsonFile << std::endl;
   }
+  if (m_type.empty()) {
+    std::cout << "m_type is empty" << std::endl;
+    m_type.push_back(VC_KERN_ARG);
+  }
+  m_type_cnt = m_type.size();
   ParseJson();
 
   return 0;

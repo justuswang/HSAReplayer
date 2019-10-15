@@ -102,13 +102,11 @@ int Options::get_opts(int argc, char **argv)
     m_jsonFile = m_defaultJsonFile;
     std::cout << "Try to open default json file: " << m_jsonFile << std::endl;
   }
-  if (m_type.empty()) {
-    std::cout << "m_type is empty" << std::endl;
+  if (m_type.empty())
     m_type.push_back(VC_KERN_ARG);
-  }
   m_type_cnt = m_type.size();
-  ParseJson();
 
+  ParseJson();
   return 0;
 err:
   PrintHelp();

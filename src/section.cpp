@@ -102,11 +102,37 @@ std::ostream& VCKernArg::Print(std::ostream &out)
       return out;
     }
     for (int i = 0; i < (int)Number<uint32_t>(); i++)
-      //out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::endl;
-      out << As<float*>()[i] << std::endl;
+      out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::endl;
   } else {
       out << Value() << std::endl;
   }
 
   return out;
+}
+
+void VCKernArg::Print(KernArgDataType type)
+{
+  std::cout << m_seperator << std::endl;
+  std::cout << Name() << ":" << Index() << std::endl;
+  if (IsAddr()) {
+    if (!Allocated()) {
+      std::cerr << "No data to print!" << std::endl;
+      return;
+    }
+    if (type == KA_INT) {
+      for (int i = 0; i < (int)Number<uint32_t>(); i++)
+        std::cout << As<int*>()[i] << std::endl;
+    } else if (type == KA_FLOAT) {
+      for (int i = 0; i < (int)Number<uint32_t>(); i++)
+        std::cout << As<float*>()[i] << std::endl;
+    } else if (type == KA_DOUBLE) {
+      for (int i = 0; i < (int)Number<uint64_t>(); i++)
+        std::cout << As<double*>()[i] << std::endl;
+    } else {
+        std::cerr << "Unknown type: " << type << std::endl;
+    }
+  } else {
+      std::cout << Value() << std::endl;
+  }
+
 }

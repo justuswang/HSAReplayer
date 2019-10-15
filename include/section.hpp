@@ -21,6 +21,13 @@ enum VCDataType {
     VC_VAL,
 };
 
+enum KernArgDataType {
+    KA_INT = 0,
+    KA_FLOAT,
+    KA_DOUBLE,
+    KA_MAX,
+};
+
 class VCSection {
 public:
     VCSection(VCSectionType secType, uint32_t size, hsa_agent_t agent, MemoryRegionType memType);
@@ -38,6 +45,8 @@ public:
     void SetValue(std::string &str);
     bool OutOfMemory(uint32_t pos);
     bool Allocated() { return m_mem != NULL; }
+    uint32_t ArgsNum() { return m_args_num; }
+    void SetArgsNum(uint32_t num) { m_args_num = num; }
 
     friend std::ostream& operator<< (std::ostream &out, VCSection &sec);
 
@@ -48,6 +57,7 @@ public:
     virtual uint32_t Value() { return 0; }
     virtual bool IsAddr() { return VC_ADDR; }
     virtual std::ostream& Print(std::ostream &out);
+    virtual void Print(KernArgDataType type) { return; };
 
     // The implementation of a non-specialized template must be visible to a translation unit that uses it.
     // https://stackoverflow.com/questions/10632251/undefined-reference-to-template-function
@@ -85,6 +95,7 @@ protected:
     HSAMemoryObject *m_mem;
     uint32_t m_pos;
     std::string m_seperator;
+    uint32_t m_args_num;
 };
 
 class VCKernArg : public VCSection {
@@ -102,6 +113,7 @@ public:
     uint32_t Value() { return m_value; }
     bool IsAddr() { return m_is_addr; }
     std::ostream& Print(std::ostream &out);
+    void Print(KernArgDataType type);
 
 private:
     VCDataType m_dtype;

@@ -8,7 +8,7 @@
 
 class Options {
 public:
-  Options() { };
+  Options();
   int get_opts(int argc, char **argv);
   //VCSectionType Type() const { return m_type; }
   VCSectionType TypePop();// { return m_type; }
@@ -22,6 +22,7 @@ private:
 
   std::string m_progName;
   std::string m_fileName;
+  std::string m_defaultFileName;
   std::vector<VCSectionType> m_type; // include all
   int m_type_cnt;
 };

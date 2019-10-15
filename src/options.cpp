@@ -2,6 +2,11 @@
 
 Options g_opts;
 
+Options::Options()
+{
+  m_defaultFileName = "./vc.rpl";
+}
+
 void Options::PrintHelp()
 {
   std::string helpInfo = m_progName + " -i <file> -p <section type>\n" +
@@ -56,8 +61,8 @@ int Options::get_opts(int argc, char **argv)
 
   m_type_cnt = m_type.size();
   if (m_fileName.empty()) {
-    std::cerr << "No file to open!" << std::endl;
-    goto err;
+    m_fileName = m_defaultFileName;
+    std::cout << "Open default file: " << m_fileName << std::endl;
   }
   return 0;
 err:

@@ -13,7 +13,6 @@ class Options {
 public:
   Options();
   int get_opts(int argc, char **argv);
-  //VCSectionType Type() const { return m_type; }
   VCSectionType TypePop();// { return m_type; }
   int TypeNum() const { return m_type_cnt; }
   const char * FileName() const { return m_fileName.c_str(); }
@@ -25,6 +24,7 @@ public:
     else
       return &kernArgs;
   }
+  bool Debug() const { return m_debug; }
 
 private:
   void SetName(char** name) { m_progName = *name; }
@@ -40,6 +40,7 @@ private:
   std::vector<KernArgDataType> kernArgs;
   std::vector<VCSectionType> m_type; // include all
   int m_type_cnt;
+  bool m_debug;
 };
 
 extern Options g_opts;

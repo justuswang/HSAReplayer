@@ -6,6 +6,7 @@ Options::Options()
 {
   m_defaultFileName = "./vc.rpl";
   m_defaultJsonFile = "./ka.json";
+  m_debug = false;
 }
 
 void Options::PrintHelp()
@@ -19,6 +20,7 @@ void Options::PrintHelp()
      2: Kernel Arg Pool\n\
      3: Kernel Args\n\
      4: All sections\n"
+    "  -d show debug info\n"
     "  -h show this help info";
 
   std::cout << helpInfo << std::endl;
@@ -45,8 +47,10 @@ void Options::ParseJson()
     return;
 
   json j = json::parse(f);
-  //std::cout << "version: " << j["version"] << std::endl;
-  //std::cout << "kernel args: " << j["kernel_args"].size() << std::endl;
+  if (g_opts.Debug()) {
+    std::cout << "version: " << j["version"] << std::endl;
+    std::cout << "kernel args: " << j["kernel_args"].size() << std::endl;
+  }
   for (int i = 0; i < (int)j["kernel_args"].size(); i++) {
     std::string str = j["kernel_args"][i][1].dump();
     ParseKernArg((const char*)str.substr(1, str.size() - 2).c_str());
@@ -89,9 +93,6 @@ int Options::get_opts(int argc, char **argv)
       goto err;
     }
   }
-
-  // debug
-  //m_fileName = "/home/zjunwei/tmp/clang_vectoradd_co_v10.rpl";
 
   m_type_cnt = m_type.size();
   if (m_fileName.empty()) {

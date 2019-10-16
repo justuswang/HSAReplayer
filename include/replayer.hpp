@@ -31,12 +31,14 @@ public:
 
   void CreateQueue(uint32_t size, hsa_queue_type32_t type);
   void SubmitPacket(void);
+  void SubmitPacket(HsacoAql *aql);
 
 private:
   int LoadVectorFile(const char *fileName);
   int LoadHsacoFile(const char *fileName);
   void VCSubmitPacket(void);
   void HsacoSubmitPacket(void);
+  void HsacoSubmitPacket(HsacoAql *aql);
   bool IsVCMode(void) { return m_mode == RE_VC; }
 
   std::vector<VCSection*> m_sections;

@@ -266,7 +266,7 @@ void Replayer::SubmitPacket(void)
 
 void Replayer::HsacoSubmitPacket(void)
 {
-  const int V_LEN = 256;
+  const int V_LEN = 16;
   hsa_kernel_dispatch_packet_t packet;
 
   HSAMemoryObject in_A(V_LEN * sizeof(float), m_agent, MEM_SYS);
@@ -314,6 +314,77 @@ void Replayer::HsacoSubmitPacket(void)
     EXPECT_SUCCESS(status);
   };
 
+  init_pkg_vector_add();
+  m_queue->SubmitPacket(packet);
+
+  for (int i = 0; i < V_LEN; i++) {
+    std::cout << in_C.As<float*>()[i] << std::endl;
+  }
+}
+
+void Replayer::SubmitPacket(HsacoAql *aql)
+{
+  if (m_mode == RE_VC)
+    VCSubmitPacket();
+  else if (m_mode == RE_HSACO)
+    HsacoSubmitPacket(aql);
+  else
+    std::cerr << "Unknown replay mode!" << std::endl;
+}
+
+void Replayer::HsacoSubmitPacket(HsacoAql *aql)
+{
+  const int V_LEN = 16;
+  hsa_kernel_dispatch_packet_t packet = { 0 };
+
+  auto init_pkg_dim = [&] () {
+    packet.setup = aql->dim << HSA_KERNEL_DISPATCH_PACKET_SETUP_DIMENSIONS;
+    packet.workgroup_size_x = (uint16_t)aql->workgroup_size_x;
+    packet.workgroup_size_y = (uint16_t)aql->workgroup_size_y;
+    packet.workgroup_size_z = (uint16_t)aql->workgroup_size_z;
+    packet.grid_size_x = (uint16_t)aql->grid_size_x;
+    packet.grid_size_y = (uint16_t)aql->grid_size_y;
+    packet.grid_size_z = (uint16_t)aql->grid_size_z;
+  };
+
+  HSAMemoryObject in_A(V_LEN * sizeof(float), m_agent, MEM_SYS);
+  HSAMemoryObject in_B(V_LEN * sizeof(float), m_agent, MEM_SYS);
+  HSAMemoryObject in_C(V_LEN * sizeof(float), m_agent, MEM_SYS);
+  for (int i = 0; i < V_LEN; i++) in_A.As<float*>()[i] = i;
+  in_B.Fill<float>((float)1.0);
+  in_C.Fill<float>((float)0.0);
+
+  int num_of_kernargs = 3;
+  HSAMemoryObject args(sizeof(uint64_t) * num_of_kernargs, m_agent, MEM_KERNARG);
+
+  auto init_pkg_vector_add = [&]() {
+    struct kern_args_t {
+      float *in_A;
+      float *in_B;
+      float *in_C;
+    };
+    args.As<struct kern_args_t*>()->in_A = in_A.As<float*>();
+    args.As<struct kern_args_t*>()->in_B = in_B.As<float*>();
+    args.As<struct kern_args_t*>()->in_C = in_C.As<float*>();
+
+    packet.kernarg_address = args.As<void*>();
+
+    hsa_status_t status;
+    status = hsa_executable_symbol_get_info(m_executable->GetSymbol(),
+                                    HSA_EXECUTABLE_SYMBOL_INFO_KERNEL_OBJECT,
+                                    &packet.kernel_object);
+    EXPECT_SUCCESS(status);
+    status = hsa_executable_symbol_get_info(m_executable->GetSymbol(),
+                                    HSA_EXECUTABLE_SYMBOL_INFO_KERNEL_PRIVATE_SEGMENT_SIZE,
+                                    &packet.private_segment_size);
+    EXPECT_SUCCESS(status);
+    status = hsa_executable_symbol_get_info(m_executable->GetSymbol(),
+                                    HSA_EXECUTABLE_SYMBOL_INFO_KERNEL_GROUP_SEGMENT_SIZE,
+                                    &packet.group_segment_size);
+    EXPECT_SUCCESS(status);
+  };
+
+  init_pkg_dim();
   init_pkg_vector_add();
   m_queue->SubmitPacket(packet);
 

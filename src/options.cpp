@@ -43,18 +43,32 @@ void Options::ParseKernArg(const char *type)
 void Options::ParseJson()
 {
   std::ifstream f(m_jsonFile);
-  if (!f.is_open())
+  if (!f.is_open()){
+    std::cout << "Failed to open " << m_jsonFile << std::endl;
     return;
+  }
 
   json j = json::parse(f);
   if (g_opts.Debug()) {
     std::cout << "version: " << j["version"] << std::endl;
-    std::cout << "kernel args: " << j["kernel_args"].size() << std::endl;
+    std::cout << "kernel args: " << j["vc_kernel_args"].size() << std::endl;
   }
-  for (int i = 0; i < (int)j["kernel_args"].size(); i++) {
-    std::string str = j["kernel_args"][i][1].dump();
+  for (int i = 0; i < (int)j["vc_kernel_args"].size(); i++) {
+    std::string str = j["vc_kernel_args"][i][1].dump();
     ParseKernArg((const char*)str.substr(1, str.size() - 2).c_str());
   }
+
+  // hsaco
+  std::cout << "hsaco AQL: " << j["hsaco_aql"].size() << std::endl;
+  int dim = j["hsaco_aql"]["dim"];
+  std::cout << "hsaco dim: " << dim << std::endl;
+  m_hsacoAql.SetAll(j["hsaco_aql"]["dim"],
+                  j["hsaco_aql"]["workgroup_size_x"],
+                  j["hsaco_aql"]["workgroup_size_y"],
+                  j["hsaco_aql"]["workgroup_size_z"],
+                  j["hsaco_aql"]["grid_size_x"],
+                  j["hsaco_aql"]["grid_size_y"],
+                  j["hsaco_aql"]["grid_size_z"]);
 }
 
 VCSectionType Options::TypePop()

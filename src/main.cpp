@@ -18,7 +18,9 @@ int main(int argc, char **argv)
     return ret;
   replayer.SetDataTypes(g_opts.KernArgTypes());
 
-  replayer.SubmitPacket();
+  std::cout << "g_opts hsaco aql dim: " << g_opts.HSACOAql()->dim << std::endl;
+  //replayer.SubmitPacket();
+  replayer.SubmitPacket(g_opts.HSACOAql());
 
   for (int i = 0; i < g_opts.TypeNum(); i++) {
     replayer.PrintSection(g_opts.TypePop());

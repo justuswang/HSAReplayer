@@ -6,6 +6,30 @@
 #include <vector>
 #include "hsautils.hpp"
 
+// TODO: collect all data type in a global header file
+class HsacoAql
+{
+  public:
+    void SetAll(int d, int wg_x, int wg_y, int wg_z, int g_x, int g_y, int g_z)
+    {
+      dim = d;
+      workgroup_size_x = wg_x;
+      workgroup_size_y = wg_y;
+      workgroup_size_z = wg_z;
+      grid_size_x = g_x;
+      grid_size_y = g_y;
+      grid_size_z = g_z;
+    }
+
+    int dim;
+    int workgroup_size_x;
+    int workgroup_size_y;
+    int workgroup_size_z;
+    int grid_size_x;
+    int grid_size_y;
+    int grid_size_z;
+};
+
 enum VCSectionType {
   VC_NULL = -1,
   VC_AQL = 0,

@@ -25,6 +25,7 @@ public:
       return &kernArgs;
   }
   bool Debug() const { return m_debug; }
+  HsacoAql* HSACOAql() { return &m_hsacoAql; }
 
 private:
   void SetName(char** name) { m_progName = *name; }
@@ -41,6 +42,8 @@ private:
   std::vector<VCSectionType> m_type; // include all
   int m_type_cnt;
   bool m_debug;
+
+  HsacoAql m_hsacoAql;
 };
 
 extern Options g_opts;

@@ -20,14 +20,13 @@ public:
   VCSection* GetSection(VCSectionType type);
   void PrintSection(VCSectionType type);
   void PrintKernArgs(void);
-  void PrintKernArg(int index, KernArgDataType argsType);
+  void PrintKernArg(int index);
   void SetDataTypes(std::vector<KernArgDataType> *argsType);
 
   void CreateQueue(uint32_t size, hsa_queue_type32_t type);
   void SubmitPacket(void);
 
 private:
-  VCSection* GetKernArg(int index);
 
   std::vector<VCSection*> m_sections;
   hsa_agent_t m_agent;

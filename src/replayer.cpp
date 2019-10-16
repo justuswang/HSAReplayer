@@ -133,28 +133,18 @@ VCSection* Replayer::GetSection(VCSectionType type)
   return NULL;
 }
 
-VCSection* Replayer::GetKernArg(int index)
-{
-  for (int i = 0; i < (int)m_sections.size(); i++) {
-    VCSection* sec = m_sections[i];
-    if ((sec->SType() == VC_KERN_ARG) && (sec->Index() == (uint32_t)index))
-      return sec;
-  }
-  return NULL;
-}
-
 // for debug to show a specific kernel arg data
-void Replayer::PrintKernArg(int index, KernArgDataType argsType)
+void Replayer::PrintKernArg(int index)
 {
-  if (argsType >= KA_MAX) {
-    std::cerr << "Invalid kernel argement type!" << std::endl;
-    return;
-  }
   if ((uint32_t)index >= GetSection(VC_KERN_ARG_POOL)->ArgsNum()) {
     std::cerr << "Invalid kernel argement type!" << std::endl;
     return;
   }
-  std::cout << *(GetKernArg(index)) << std::endl;
+  for (int i = 0; i < (int)m_sections.size(); i++) {
+    VCSection* sec = m_sections[i];
+    if ((sec->SType() == VC_KERN_ARG) && (sec->Index() == (uint32_t)index))
+      std::cout << *sec << std::endl;
+  }
 }
 
 void Replayer::SetDataTypes(std::vector<KernArgDataType> *argsType)

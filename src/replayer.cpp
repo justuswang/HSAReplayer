@@ -133,15 +133,6 @@ VCSection* Replayer::GetSection(VCSectionType type)
   return NULL;
 }
 
-void Replayer::ShowKernelArgs()
-{
-  for (int i = 0; i < (int)m_sections.size(); i++) {
-    VCSection* sec = m_sections[i];
-    if (sec->SType() == VC_KERN_ARG)
-      std::cout << *sec << std::endl;
-  }
-}
-
 VCSection* Replayer::GetKernArg(int index)
 {
   for (int i = 0; i < (int)m_sections.size(); i++) {
@@ -152,6 +143,7 @@ VCSection* Replayer::GetKernArg(int index)
   return NULL;
 }
 
+// for debug to show a specific kernel arg data
 void Replayer::PrintKernArg(int index, KernArgDataType argsType)
 {
   if (argsType >= KA_MAX) {
@@ -162,39 +154,45 @@ void Replayer::PrintKernArg(int index, KernArgDataType argsType)
     std::cerr << "Invalid kernel argement type!" << std::endl;
     return;
   }
-  GetKernArg(index)->Print(argsType);
+  std::cout << *(GetKernArg(index)) << std::endl;
 }
 
-void Replayer::PrintKernArgs(std::vector<KernArgDataType> *argsType)
+void Replayer::SetDataTypes(std::vector<KernArgDataType> *argsType)
 {
   if (argsType == NULL) {
-    ShowKernelArgs();
     return;
   }
-  if (argsType->size() > GetSection(VC_KERN_ARG_POOL)->ArgsNum()) {
+  if (argsType->size() < GetSection(VC_KERN_ARG_POOL)->ArgsNum()) {
     std::cerr << "Invalid kernel argement type list!" << std::endl;
     return;
   }
   for (int i = 0; i < (int)m_sections.size(); i++) {
     VCSection* sec = m_sections[i];
     if (sec->SType() == VC_KERN_ARG)
-      sec->Print(argsType->at(sec->Index()));
+      sec->SetDataType(argsType->at(sec->Index()));
   }
 }
 
-void Replayer::PrintSection(VCSectionType type, std::vector<KernArgDataType> *argsType)
+void Replayer::PrintKernArgs()
+{
+  for (int i = 0; i < (int)m_sections.size(); i++) {
+    VCSection* sec = m_sections[i];
+    if (sec->SType() == VC_KERN_ARG)
+      std::cout << *sec << std::endl;
+  }
+}
+
+void Replayer::PrintSection(VCSectionType type)
 {
   if ((type == VC_NULL) || (m_sections.size() == 0))
     return;
 
   if (type == VC_KERN_ARG) {
-    PrintKernArgs(argsType);
+    PrintKernArgs();
   } else if (type == VC_TYPE_MAX) {
     for (int i = 0; i < (int)m_sections.size(); i++) {
-        if (m_sections[i]->SType() != VC_KERN_ARG)
         std::cout << *(m_sections[i]) << std::endl;
     }
-    PrintKernArgs(argsType);
   } else {
     std::cout << *GetSection(type) << std::endl;
   }

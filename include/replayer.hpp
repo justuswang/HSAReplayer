@@ -18,15 +18,15 @@ public:
 
   uint64_t GetHexValue(std::string &line, const char *key);
   VCSection* GetSection(VCSectionType type);
-  void PrintSection(VCSectionType type, std::vector<KernArgDataType> *argsType);
-  void PrintKernArgs(std::vector<KernArgDataType> *argsType);
+  void PrintSection(VCSectionType type);
+  void PrintKernArgs(void);
   void PrintKernArg(int index, KernArgDataType argsType);
+  void SetDataTypes(std::vector<KernArgDataType> *argsType);
 
   void CreateQueue(uint32_t size, hsa_queue_type32_t type);
   void SubmitPacket(void);
 
 private:
-  void ShowKernelArgs(void);
   VCSection* GetKernArg(int index);
 
   std::vector<VCSection*> m_sections;

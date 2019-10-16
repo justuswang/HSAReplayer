@@ -14,12 +14,13 @@ int main(int argc, char **argv)
   ret = replayer.LoadVectorFile(g_opts.FileName());
   if (ret != 0)
     return ret;
+  replayer.SetDataTypes(g_opts.KernArgTypes());
 
   replayer.CreateQueue(64, HSA_QUEUE_TYPE_MULTI);
   replayer.SubmitPacket();
 
   for (int i = 0; i < g_opts.TypeNum(); i++) {
-    replayer.PrintSection(g_opts.TypePop(), g_opts.KernArgTypes());
+    replayer.PrintSection(g_opts.TypePop());
   }
 
   return 0;

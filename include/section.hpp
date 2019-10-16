@@ -58,7 +58,7 @@ public:
     virtual uint32_t Value() { return 0; }
     virtual bool IsAddr() { return VC_ADDR; }
     virtual std::ostream& Print(std::ostream &out);
-    virtual void Print(KernArgDataType type) { return; };
+    virtual void SetDataType(KernArgDataType type) { return; };
 
     // The implementation of a non-specialized template must be visible to a translation unit that uses it.
     // https://stackoverflow.com/questions/10632251/undefined-reference-to-template-function
@@ -114,7 +114,7 @@ public:
     uint32_t Value() { return m_value; }
     bool IsAddr() { return m_is_addr; }
     std::ostream& Print(std::ostream &out);
-    void Print(KernArgDataType type);
+    void SetDataType(KernArgDataType type) { m_type = type; }
 
 private:
     VCDataType m_dtype;
@@ -123,6 +123,7 @@ private:
     uint32_t m_offset;
     uint32_t m_value;
     bool m_is_addr;
+    KernArgDataType m_type;
 };
 
 #endif /* __SECTION_H__ */

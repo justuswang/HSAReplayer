@@ -80,7 +80,8 @@ VCKernArg::VCKernArg(uint32_t index,
   : VCSection(VC_KERN_ARG, 0, agent, memType), // do not allocate memory here, handled by KernArg
   m_index(index),
   m_offset(offset),
-  m_is_addr(false)
+  m_is_addr(false),
+  m_type(KA_UINT32)
 {
     m_size = size;
     if (isAddr && (m_size != 0)) {
@@ -94,45 +95,31 @@ VCKernArg::VCKernArg(uint32_t index,
 
 std::ostream& VCKernArg::Print(std::ostream &out)
 {
-  out << Name() << ":" << Index() << std::endl;
   out << m_seperator << std::endl;
+  out << Name() << ":" << Index() << std::endl;
   if (IsAddr()) {
     if (!Allocated()) {
       out << "No data to print!" << std::endl;
       return out;
     }
-    for (int i = 0; i < (int)Number<uint32_t>(); i++)
-      out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::endl;
+    if (m_type == KA_UINT32) {
+      for (int i = 0; i < (int)Number<uint32_t>(); i++)
+        out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::endl;
+    } else if (m_type == KA_INT) {
+      for (int i = 0; i < (int)Number<uint32_t>(); i++)
+        out << As<int*>()[i] << std::endl;
+    } else if (m_type == KA_FLOAT) {
+      for (int i = 0; i < (int)Number<uint32_t>(); i++)
+        out << As<float*>()[i] << std::endl;
+    } else if (m_type == KA_DOUBLE) {
+      for (int i = 0; i < (int)Number<uint64_t>(); i++)
+        out << As<double*>()[i] << std::endl;
+    } else {
+        out << "Unknown type: " << m_type << std::endl;
+    }
   } else {
       out << Value() << std::endl;
   }
 
   return out;
-}
-
-void VCKernArg::Print(KernArgDataType type)
-{
-  std::cout << m_seperator << std::endl;
-  std::cout << Name() << ":" << Index() << std::endl;
-  if (IsAddr()) {
-    if (!Allocated()) {
-      std::cerr << "No data to print!" << std::endl;
-      return;
-    }
-    if (type == KA_INT) {
-      for (int i = 0; i < (int)Number<uint32_t>(); i++)
-        std::cout << As<int*>()[i] << std::endl;
-    } else if (type == KA_FLOAT) {
-      for (int i = 0; i < (int)Number<uint32_t>(); i++)
-        std::cout << As<float*>()[i] << std::endl;
-    } else if (type == KA_DOUBLE) {
-      for (int i = 0; i < (int)Number<uint64_t>(); i++)
-        std::cout << As<double*>()[i] << std::endl;
-    } else {
-        std::cerr << "Unknown type: " << type << std::endl;
-    }
-  } else {
-      std::cout << Value() << std::endl;
-  }
-
 }

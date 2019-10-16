@@ -15,11 +15,11 @@ Replayer::~Replayer()
     m_sections[i]->~VCSection();
   }
   if (m_executable) {
-    m_executable->~HSAExecutable();
+    delete m_executable;
     m_executable = NULL;
   }
   if (m_queue) {
-    m_queue->~HSAQueue();
+    delete m_queue;
     m_queue = NULL;
   }
 }

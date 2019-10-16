@@ -11,7 +11,7 @@ int main(int argc, char **argv)
   HSAInit hsaInit;
   Replayer replayer;
 
-  ret = replayer.LoadVectorFile(g_opts.FileName());
+  ret = replayer.LoadData(g_opts.FileName());
   if (ret != 0)
     return ret;
   replayer.SetDataTypes(g_opts.KernArgTypes());

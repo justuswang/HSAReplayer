@@ -8,12 +8,18 @@
 #include "hsautils.hpp"
 #include "section.hpp"
 
+enum ReplayMode {
+  RE_VC = 1,
+  RE_HSACO,
+};
+
+
 class Replayer {
 public:
   Replayer();
   ~Replayer();
 
-  int LoadVectorFile(const char *fileName);
+  int LoadData(const char *fileName);
   void UpdateKernelArgPool();
 
   uint64_t GetHexValue(std::string &line, const char *key);
@@ -27,10 +33,15 @@ public:
   void SubmitPacket(void);
 
 private:
+  int LoadVectorFile(const char *fileName);
+  int LoadHsacoFile(const char *fileName);
+  void VCSubmitPacket(void);
+  void HsacoSubmitPacket(void);
 
   std::vector<VCSection*> m_sections;
   hsa_agent_t m_agent;
   HSAQueue *m_queue;
+  ReplayMode m_mode;
 };
 
 #endif /* __REPLAYER_H__ */

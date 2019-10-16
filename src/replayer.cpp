@@ -123,6 +123,42 @@ void Replayer::UpdateKernelArgPool()
   //}
 }
 
+int Replayer::LoadHsacoFile(const char *fileName)
+{
+
+  return 0;
+}
+int Replayer::LoadData(const char *fileName)
+{
+  int ret = 0;
+  auto SetMode = [&] () -> int {
+    std::string str(fileName);
+    if (str.rfind(".hsaco") != std::string::npos) {
+      std::cout << "hsaco" << std::endl;
+      m_mode = RE_HSACO;
+    }
+    else if (str.rfind(".rpl") != std::string::npos) {
+      std::cout << "rpl" << std::endl;
+      m_mode = RE_VC;
+    } else {
+      return -1;
+    }
+    return 0;
+  };
+  if (SetMode() != 0) {
+    std::cerr << "Unknown type input file!" << std::endl;
+    return -1;
+  }
+
+  if (m_mode == RE_VC) {
+    ret = LoadVectorFile(fileName);
+  } else {
+    ret = LoadHsacoFile(fileName);
+  }
+
+  return ret;
+}
+
 VCSection* Replayer::GetSection(VCSectionType type)
 {
   for (int i = 0; i < (int)m_sections.size(); i++) {
@@ -195,7 +231,7 @@ void Replayer::CreateQueue(uint32_t size, hsa_queue_type32_t type)
   m_queue = new HSAQueue(m_agent, size, type);
 }
 
-void Replayer::SubmitPacket(void)
+void Replayer::VCSubmitPacket(void)
 {
   hsa_kernel_dispatch_packet_t packet;
 
@@ -204,4 +240,19 @@ void Replayer::SubmitPacket(void)
   packet.kernel_object = (uint64_t)GetSection(VC_KERN_OBJ)->As<void*>();
 
   m_queue->SubmitPacket(packet);
+}
+
+void Replayer::SubmitPacket(void)
+{
+  if (m_mode == RE_VC)
+    VCSubmitPacket();
+  else if (m_mode == RE_HSACO)
+    HsacoSubmitPacket();
+  else
+    std::cerr << "Unknown replay mode!" << std::endl;
+}
+
+void Replayer::HsacoSubmitPacket(void)
+{
+
 }

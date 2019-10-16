@@ -5,7 +5,7 @@ Options g_opts;
 Options::Options()
 {
   m_defaultFileName = "./vc.rpl";
-  m_defaultJsonFile = "./ka.json";
+  m_defaultJsonFile = "./config.json";
   m_debug = false;
 }
 
@@ -13,7 +13,7 @@ void Options::PrintHelp()
 {
   std::string helpInfo = m_progName + " -i <file> -p <section type>\n" +
     "  -i input file name to load (default ./vc.rpl)\n"
-    "  -j input json file to parse kernel args data type (default ./ka.json)\n"
+    "  -j input json file to parse kernel args data type (default ./config.json)\n"
     "  -p print section info\n\
      0: AQL packet\n\
      1: Kernel Object\n\

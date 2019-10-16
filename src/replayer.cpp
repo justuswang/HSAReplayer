@@ -1,7 +1,8 @@
 #include "replayer.hpp"
 
 Replayer::Replayer()
-  : m_queue(NULL)
+  : m_executable(NULL),
+  m_queue(NULL)
 {
   HSAAgent agent;
   m_agent = agent.Get();
@@ -12,6 +13,10 @@ Replayer::~Replayer()
   // clean up resource before hsa shutdown
   for (int i = 0; i < (int)m_sections.size(); i++) {
     m_sections[i]->~VCSection();
+  }
+  if (m_executable) {
+    m_executable->~HSAExecutable();
+    m_executable = NULL;
   }
   if (m_queue) {
     m_queue->~HSAQueue();
@@ -125,7 +130,7 @@ void Replayer::UpdateKernelArgPool()
 
 int Replayer::LoadHsacoFile(const char *fileName)
 {
-  m_queue->LoadCodeObject(fileName, "vector_add");
+  m_executable->LoadCodeObject(fileName, "vector_add");
   return 0;
 }
 
@@ -231,9 +236,11 @@ void Replayer::PrintSection(VCSectionType type)
 
 void Replayer::CreateQueue(uint32_t size, hsa_queue_type32_t type)
 {
-  if (m_queue != NULL)
-    return;
-  m_queue = new HSAQueue(m_agent, size, type);
+  if (m_executable == NULL)
+    m_executable = new HSAExecutable(m_agent);
+
+  if (m_queue == NULL)
+    m_queue = new HSAQueue(m_agent, size, type);
 }
 
 void Replayer::VCSubmitPacket(void)
@@ -259,5 +266,58 @@ void Replayer::SubmitPacket(void)
 
 void Replayer::HsacoSubmitPacket(void)
 {
+  const int V_LEN = 256;
+  hsa_kernel_dispatch_packet_t packet;
 
+  HSAMemoryObject in_A(V_LEN * sizeof(float), m_agent, MEM_SYS);
+  HSAMemoryObject in_B(V_LEN * sizeof(float), m_agent, MEM_SYS);
+  HSAMemoryObject in_C(V_LEN * sizeof(float), m_agent, MEM_SYS);
+  for (int i = 0; i < V_LEN; i++) in_A.As<float*>()[i] = i;
+  in_B.Fill<float>((float)1.0);
+  in_C.Fill<float>((float)0.0);
+
+  auto init_pkg_vector_add = [&]() {
+    packet.setup |= 1 << HSA_KERNEL_DISPATCH_PACKET_SETUP_DIMENSIONS;
+    packet.workgroup_size_x = (uint16_t)V_LEN;
+    packet.workgroup_size_y = (uint16_t)1;
+    packet.workgroup_size_z = (uint16_t)1;
+    packet.grid_size_x = (uint16_t)V_LEN;
+    packet.grid_size_y = (uint16_t)1;
+    packet.grid_size_z = (uint16_t)1;
+
+    // allocate kernel arguments from kernarg region
+    // they can be queried one by one as below format
+    struct kern_args_t {
+      float *in_A;
+      float *in_B;
+      float *in_C;
+    };
+    HSAMemoryObject args(sizeof(struct kern_args_t), m_agent, MEM_KERNARG);
+    args.As<struct kern_args_t*>()->in_A = in_A.As<float*>();
+    args.As<struct kern_args_t*>()->in_B = in_B.As<float*>();
+    args.As<struct kern_args_t*>()->in_C = in_C.As<float*>();
+
+    packet.kernarg_address = args.As<void*>();
+
+    hsa_status_t status;
+    status = hsa_executable_symbol_get_info(m_executable->GetSymbol(),
+                                    HSA_EXECUTABLE_SYMBOL_INFO_KERNEL_OBJECT,
+                                    &packet.kernel_object);
+    EXPECT_SUCCESS(status);
+    status = hsa_executable_symbol_get_info(m_executable->GetSymbol(),
+                                    HSA_EXECUTABLE_SYMBOL_INFO_KERNEL_PRIVATE_SEGMENT_SIZE,
+                                    &packet.private_segment_size);
+    EXPECT_SUCCESS(status);
+    status = hsa_executable_symbol_get_info(m_executable->GetSymbol(),
+                                    HSA_EXECUTABLE_SYMBOL_INFO_KERNEL_GROUP_SEGMENT_SIZE,
+                                    &packet.group_segment_size);
+    EXPECT_SUCCESS(status);
+  };
+
+  init_pkg_vector_add();
+  m_queue->SubmitPacket(packet);
+
+  for (int i = 0; i < V_LEN; i++) {
+    std::cout << in_C.As<float*>()[i] << std::endl;
+  }
 }

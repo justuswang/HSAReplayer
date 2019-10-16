@@ -234,8 +234,7 @@ HSAQueue::HSAQueue(hsa_agent_t agent, uint32_t size, hsa_queue_type32_t type)
   : m_agent(agent),
   m_size(size),
   m_type(type),
-  m_queue(NULL),
-  m_executable(agent)
+  m_queue(NULL)
 {
   EXPECT_SUCCESS(hsa_queue_create(m_agent, m_size, m_type,
                                   NULL, NULL,
@@ -251,16 +250,6 @@ HSAQueue::~HSAQueue(void)
     EXPECT_SUCCESS(hsa_queue_destroy(m_queue));
     m_queue = NULL;
   }
-}
-
-hsa_status_t HSAQueue::LoadCodeObject(const char *fileName, const char *kernelName)
-{
-  hsa_status_t status;
-
-  status = m_executable.LoadCodeObject(fileName, kernelName);
-  EXPECT_SUCCESS(status);
-
-  return status;
 }
 
 hsa_status_t HSAQueue::SubmitPacket(hsa_kernel_dispatch_packet_t &pkt)

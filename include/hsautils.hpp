@@ -45,11 +45,15 @@ class HSAMemoryObject {
     HSAMemoryObject(size_t size, hsa_agent_t agent, MemoryRegionType type);
     ~HSAMemoryObject();
 
+    size_t Size(void) const { return m_size; }
     template<typename DataType>
     DataType As() {
       return reinterpret_cast<DataType>(m_ptr);
     }
-    size_t Size(void) const { return m_size; }
+    template<typename T>
+    void Fill(T value) {
+      for (size_t i = 0; i < m_size / sizeof(T); i++) reinterpret_cast<T*>(m_ptr)[i] = value;
+    }
 
   private:
     size_t m_size;
@@ -118,7 +122,5 @@ class HSAQueue {
     uint32_t m_size;
     hsa_queue_type32_t m_type;
     hsa_queue_t *m_queue;
-
-    HSAExecutable m_executable;
 };
 #endif /* __HSA_UTILS_H__ */

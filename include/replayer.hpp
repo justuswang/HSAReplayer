@@ -41,6 +41,7 @@ private:
 
   std::vector<VCSection*> m_sections;
   hsa_agent_t m_agent;
+  HSAExecutable *m_executable;
   HSAQueue *m_queue;
   ReplayMode m_mode;
 };

@@ -81,7 +81,7 @@ VCKernArg::VCKernArg(uint32_t index,
   m_index(index),
   m_offset(offset),
   m_is_addr(false),
-  m_type(KA_UINT32)
+  m_dtype(VC_UINT32)
 {
     m_size = size;
     if (isAddr && (m_size != 0)) {
@@ -102,20 +102,20 @@ std::ostream& VCKernArg::Print(std::ostream &out)
       out << "No data to print!" << std::endl;
       return out;
     }
-    if (m_type == KA_UINT32) {
+    if (m_dtype == VC_UINT32) {
       for (int i = 0; i < (int)Number<uint32_t>(); i++)
         out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::endl;
-    } else if (m_type == KA_INT) {
+    } else if (m_dtype == VC_INT) {
       for (int i = 0; i < (int)Number<uint32_t>(); i++)
         out << As<int*>()[i] << std::endl;
-    } else if (m_type == KA_FLOAT) {
+    } else if (m_dtype == VC_FLOAT) {
       for (int i = 0; i < (int)Number<uint32_t>(); i++)
         out << As<float*>()[i] << std::endl;
-    } else if (m_type == KA_DOUBLE) {
+    } else if (m_dtype == VC_DOUBLE) {
       for (int i = 0; i < (int)Number<uint64_t>(); i++)
         out << As<double*>()[i] << std::endl;
     } else {
-        out << "Unknown type: " << m_type << std::endl;
+        out << "Unknown type: " << m_dtype << std::endl;
     }
   } else {
       out << Value() << std::endl;

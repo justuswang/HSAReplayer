@@ -17,7 +17,7 @@ public:
   int TypeNum() const { return m_type_cnt; }
   const char * FileName() const { return m_fileName.c_str(); }
   void PrintSection(void (*print)(VCSectionType type));
-  std::vector<KernArgDataType>* KernArgTypes()
+  std::vector<VCDataType>* KernArgTypes()
   {
     if (kernArgs.size() == 0)
       return NULL;
@@ -37,7 +37,7 @@ private:
   std::string m_defaultFileName;
   std::string m_jsonFile;
   std::string m_defaultJsonFile;
-  std::vector<KernArgDataType> kernArgs;
+  std::vector<VCDataType> kernArgs;
   std::vector<VCSectionType> m_type; // include all
   int m_type_cnt;
   bool m_debug;

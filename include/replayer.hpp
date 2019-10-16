@@ -21,7 +21,7 @@ public:
   void PrintSection(VCSectionType type);
   void PrintKernArgs(void);
   void PrintKernArg(int index);
-  void SetDataTypes(std::vector<KernArgDataType> *argsType);
+  void SetDataTypes(std::vector<VCDataType> *argsType);
 
   void CreateQueue(uint32_t size, hsa_queue_type32_t type);
   void SubmitPacket(void);

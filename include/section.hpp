@@ -17,16 +17,11 @@ enum VCSectionType {
 
 enum VCDataType {
     VC_INVALID = -1,
-    VC_ADDR = 1,
-    VC_VAL,
-};
-
-enum KernArgDataType {
-    KA_INT = 0,
-    KA_FLOAT,
-    KA_DOUBLE,
-    KA_UINT32,
-    KA_MAX,
+    VC_UINT32 = 0,
+    VC_INT,
+    VC_FLOAT,
+    VC_DOUBLE,
+    VC_MAX,
 };
 
 class VCSection {
@@ -56,9 +51,9 @@ public:
     virtual uint32_t Index() { return 0; }
     virtual void SetValue(uint32_t value) { return; }
     virtual uint32_t Value() { return 0; }
-    virtual bool IsAddr() { return VC_ADDR; }
+    virtual bool IsAddr() { return true; }
     virtual std::ostream& Print(std::ostream &out);
-    virtual void SetDataType(KernArgDataType type) { return; };
+    virtual void SetDataType(VCDataType type) { return; };
 
     // The implementation of a non-specialized template must be visible to a translation unit that uses it.
     // https://stackoverflow.com/questions/10632251/undefined-reference-to-template-function
@@ -107,6 +102,7 @@ public:
     ~VCKernArg(); 
 
 
+    void SetDataType(VCDataType type) { m_dtype = type; }
     VCDataType DType() { return m_dtype; }
     uint32_t Offset() { return m_offset; }
     uint32_t Index() { return m_index; }
@@ -114,16 +110,14 @@ public:
     uint32_t Value() { return m_value; }
     bool IsAddr() { return m_is_addr; }
     std::ostream& Print(std::ostream &out);
-    void SetDataType(KernArgDataType type) { m_type = type; }
 
 private:
-    VCDataType m_dtype;
     uint32_t m_index;
     uint32_t m_total_index;
     uint32_t m_offset;
     uint32_t m_value;
     bool m_is_addr;
-    KernArgDataType m_type;
+    VCDataType m_dtype;
 };
 
 #endif /* __SECTION_H__ */

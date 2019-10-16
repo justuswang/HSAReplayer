@@ -147,7 +147,7 @@ void Replayer::PrintKernArg(int index)
   }
 }
 
-void Replayer::SetDataTypes(std::vector<KernArgDataType> *argsType)
+void Replayer::SetDataTypes(std::vector<VCDataType> *argsType)
 {
   if (argsType == NULL) {
     return;

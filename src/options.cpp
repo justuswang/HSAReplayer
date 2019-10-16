@@ -31,13 +31,13 @@ using json = nlohmann::json;
 void Options::ParseKernArg(const char *type)
 {
   if (strncmp(type, "float", sizeof("float")-1) == 0)
-    kernArgs.push_back(KA_FLOAT);
+    kernArgs.push_back(VC_FLOAT);
   else if (strncmp(type, "int", sizeof("int")-1) == 0)
-    kernArgs.push_back(KA_INT);
+    kernArgs.push_back(VC_INT);
   else if (strncmp(type, "double", sizeof("double")-1) == 0)
-    kernArgs.push_back(KA_DOUBLE);
+    kernArgs.push_back(VC_DOUBLE);
   else if (strncmp(type, "uint32", sizeof("uint32")-1) == 0)
-    kernArgs.push_back(KA_UINT32);
+    kernArgs.push_back(VC_UINT32);
 }
 
 void Options::ParseJson()

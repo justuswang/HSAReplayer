@@ -37,6 +37,7 @@ private:
   int LoadHsacoFile(const char *fileName);
   void VCSubmitPacket(void);
   void HsacoSubmitPacket(void);
+  bool IsVCMode(void) { return m_mode == RE_VC; }
 
   std::vector<VCSection*> m_sections;
   hsa_agent_t m_agent;

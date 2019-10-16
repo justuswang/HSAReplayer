@@ -11,12 +11,13 @@ int main(int argc, char **argv)
   HSAInit hsaInit;
   Replayer replayer;
 
+  replayer.CreateQueue(64, HSA_QUEUE_TYPE_MULTI);
+
   ret = replayer.LoadData(g_opts.FileName());
   if (ret != 0)
     return ret;
   replayer.SetDataTypes(g_opts.KernArgTypes());
 
-  replayer.CreateQueue(64, HSA_QUEUE_TYPE_MULTI);
   replayer.SubmitPacket();
 
   for (int i = 0; i < g_opts.TypeNum(); i++) {

@@ -6,6 +6,9 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <cstring>
+#include <string>
+#include <iostream>
+#include <unistd.h> // close()
 
 #define EXPECT_SUCCESS(val) assert(HSA_STATUS_SUCCESS == (val))
 #define EXPECT_FOUND(val) assert(HSA_STATUS_INFO_BREAK == (val))
@@ -83,10 +86,31 @@ class HSASignal {
     hsa_signal_t m_signal;
 };
 
+class HSAExecutable {
+  public:
+    // FIXME: HSA_PROFILE_BASE doens't work when loads code object
+    HSAExecutable(hsa_agent_t agent,
+                  hsa_profile_t profile = HSA_PROFILE_FULL,
+                  hsa_default_float_rounding_mode_t rounding_mode = HSA_DEFAULT_FLOAT_ROUNDING_MODE_DEFAULT);
+    ~HSAExecutable();
+    hsa_status_t LoadCodeObject(const char *fileName, const char *kernelName);
+    hsa_executable_symbol_t GetSymbol(void) const { return m_symbol; }
+
+  private:
+    hsa_agent_t m_agent;
+    hsa_executable_t m_executable;
+    hsa_profile_t m_profile;
+    hsa_default_float_rounding_mode_t m_round_mode;
+    std::string m_fileName;
+    std::string m_kernelName;
+    hsa_executable_symbol_t m_symbol;
+};
+
 class HSAQueue {
   public:
     HSAQueue(hsa_agent_t agent, uint32_t size, hsa_queue_type32_t type);
     ~HSAQueue();
+    hsa_status_t LoadCodeObject(const char *fileName, const char *kernelName);
     hsa_status_t SubmitPacket(hsa_kernel_dispatch_packet_t &pkt);
 
   protected:
@@ -94,5 +118,7 @@ class HSAQueue {
     uint32_t m_size;
     hsa_queue_type32_t m_type;
     hsa_queue_t *m_queue;
+
+    HSAExecutable m_executable;
 };
 #endif /* __HSA_UTILS_H__ */

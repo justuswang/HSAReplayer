@@ -125,9 +125,10 @@ void Replayer::UpdateKernelArgPool()
 
 int Replayer::LoadHsacoFile(const char *fileName)
 {
-
+  m_queue->LoadCodeObject(fileName, "vector_add");
   return 0;
 }
+
 int Replayer::LoadData(const char *fileName)
 {
   int ret = 0;
@@ -185,6 +186,8 @@ void Replayer::PrintKernArg(int index)
 
 void Replayer::SetDataTypes(std::vector<VCDataType> *argsType)
 {
+  if (!IsVCMode())
+    return;
   if (argsType == NULL) {
     return;
   }
@@ -210,6 +213,8 @@ void Replayer::PrintKernArgs()
 
 void Replayer::PrintSection(VCSectionType type)
 {
+  if (!IsVCMode())
+    return;
   if ((type == VC_NULL) || (m_sections.size() == 0))
     return;
 

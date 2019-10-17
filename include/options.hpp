@@ -26,6 +26,7 @@ public:
   }
   bool Debug() const { return m_debug; }
   HsacoAql* HSACOAql() { return &m_hsacoAql; }
+  std::vector<std::unique_ptr<JsonKernArg>> j_kernArgs;
 
 private:
   void SetName(char** name) { m_progName = *name; }

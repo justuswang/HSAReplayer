@@ -62,8 +62,10 @@ HSAMemoryObject::HSAMemoryObject(size_t size, hsa_agent_t agent, MemoryRegionTyp
 
 HSAMemoryObject::~HSAMemoryObject()
 {
-  EXPECT_SUCCESS(hsa_memory_free(m_ptr));
-  m_ptr = NULL;
+  if (m_ptr) {
+    EXPECT_SUCCESS(hsa_memory_free(m_ptr));
+    m_ptr = NULL;
+  }
 }
 
 hsa_status_t HSAMemoryObject::get_local_memory_cb(hsa_region_t region, void *data)

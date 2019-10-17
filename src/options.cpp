@@ -60,8 +60,6 @@ void Options::ParseJson()
 
   // hsaco
   std::cout << "hsaco AQL: " << j["hsaco_aql"].size() << std::endl;
-  int dim = j["hsaco_aql"]["dim"];
-  std::cout << "hsaco dim: " << dim << std::endl;
   m_hsacoAql.SetAll(j["hsaco_aql"]["dim"],
                   j["hsaco_aql"]["workgroup_size_x"],
                   j["hsaco_aql"]["workgroup_size_y"],
@@ -69,6 +67,22 @@ void Options::ParseJson()
                   j["hsaco_aql"]["grid_size_x"],
                   j["hsaco_aql"]["grid_size_y"],
                   j["hsaco_aql"]["grid_size_z"]);
+
+  std::cout << "hsaco KernArgs: " << j["hsaco_kernel_args"].size() << std::endl;
+  for (size_t i = 0; i < j["hsaco_kernel_args"].size(); ++i) {
+    std::string str = j["hsaco_kernel_args"][i]["data_type"].dump();
+    std::cout << str.substr(1, str.size() - 2) << std::endl;
+    j_kernArgs.push_back(std::unique_ptr<JsonKernArg>(new JsonKernArg));
+    j_kernArgs[i].get()->SetAll(j["hsaco_kernel_args"][i]["index"],
+                                j["hsaco_kernel_args"][i]["store_type"],
+                                (const char*)str.substr(1, str.size() - 2).c_str(),
+                                j["hsaco_kernel_args"][i]["size"]);
+  }
+  //for (size_t i = 0; i < j_kernArgs.size(); ++i) {
+  //  std::cout << j_kernArgs[i].get()->index << ":"
+  //            << j_kernArgs[i].get()->size << ":"
+  //            << j_kernArgs[i].get()->dTpye << std::endl;
+  //}
 }
 
 VCSectionType Options::TypePop()

@@ -4,7 +4,17 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <memory>
 #include "hsautils.hpp"
+
+enum VCDataType {
+    VC_INVALID = -1,
+    VC_UINT32 = 0,
+    VC_INT,
+    VC_FLOAT,
+    VC_DOUBLE,
+    VC_MAX,
+};
 
 // TODO: collect all data type in a global header file
 class HsacoAql
@@ -30,6 +40,45 @@ class HsacoAql
     int grid_size_z;
 };
 
+enum HCStoreType {
+    HC_ADDR = 0,
+    HC_VALUE,
+};
+
+class JsonKernArg
+{
+  public:
+    int index;
+    HCStoreType sType;
+    VCDataType dType;
+    int size;
+
+    void SetAll(int idx, int s_type, const char *d_type, int sz)
+    {
+      index = idx;
+      sType = (HCStoreType)s_type;
+      size = sz;
+      if (strncmp(d_type, "float", sizeof("float")-1) == 0)
+        dType = VC_FLOAT;
+      else if (strncmp(d_type, "double", sizeof("double")-1) == 0)
+        dType = VC_DOUBLE;
+      else if (strncmp(d_type, "int", sizeof("int")-1) == 0)
+        dType = VC_INT;
+      else if (strncmp(d_type, "uint32", sizeof("uint32")-1) == 0)
+        dType = VC_UINT32;
+      else
+        dType = VC_INVALID;
+    }
+};
+
+class HsacoKernArg
+{
+public:
+  HCStoreType sType;
+  std::unique_ptr<HSAMemoryObject> mem;
+  uint32_t value;
+};
+
 enum VCSectionType {
   VC_NULL = -1,
   VC_AQL = 0,
@@ -37,15 +86,6 @@ enum VCSectionType {
   VC_KERN_ARG_POOL,
   VC_KERN_ARG,
   VC_TYPE_MAX,
-};
-
-enum VCDataType {
-    VC_INVALID = -1,
-    VC_UINT32 = 0,
-    VC_INT,
-    VC_FLOAT,
-    VC_DOUBLE,
-    VC_MAX,
 };
 
 class VCSection {

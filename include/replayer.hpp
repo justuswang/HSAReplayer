@@ -2,6 +2,7 @@
 #define __REPLAYER_H__
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <vector>
 
@@ -31,14 +32,15 @@ public:
 
   void CreateQueue(uint32_t size, hsa_queue_type32_t type);
   void SubmitPacket(void);
-  void SubmitPacket(HsacoAql *aql);
+  void SubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<JsonKernArg>> *kernArgs);
 
 private:
   int LoadVectorFile(const char *fileName);
   int LoadHsacoFile(const char *fileName);
   void VCSubmitPacket(void);
   void HsacoSubmitPacket(void);
-  void HsacoSubmitPacket(HsacoAql *aql);
+  //void HsacoSubmitPacket(HsacoAql *aql);
+  void HsacoSubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<JsonKernArg>> *kernArgs);
   bool IsVCMode(void) { return m_mode == RE_VC; }
 
   std::vector<VCSection*> m_sections;

@@ -335,38 +335,68 @@ void Replayer::SubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<JsonKernA
 
 void Replayer::HsacoSubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<JsonKernArg>> *kernArgs)
 {
-  const int V_LEN = 16;
   hsa_kernel_dispatch_packet_t packet = { 0 };
   std::vector<std::unique_ptr<HsacoKernArg>> kArgs;
 
-  auto type_size = [] (VCDataType &type) -> int {
-    if (type == VC_INT)
-      return sizeof(int);
-    else if (type == VC_FLOAT)
-      return sizeof(float);
-    else if (type == VC_DOUBLE)
-      return sizeof(double);
-    else if (type == VC_UINT32)
-      return sizeof(uint32_t);
-    else {
-      return 0;
-      std::cout << "Unknown data type" << std::endl;
+  auto init_kern_args_value = [&]() {
+    auto fill_mem = [] (HSAMemoryObject *mem, JsonKernArg *j_ka) {
+      if (j_ka->dType == VC_INT)
+        mem->Fill<int>(j_ka->value.i);
+      else if (j_ka->dType == VC_FLOAT)
+        mem->Fill<float>(j_ka->value.f);
+      else if (j_ka->dType == VC_DOUBLE)
+        mem->Fill<double>(j_ka->value.d);
+    };
+
+    for (int i = 0; i < (int)kernArgs->size(); i++) {
+      HsacoKernArg *kArg = new HsacoKernArg();
+      kArg->sType = kernArgs->at(i).get()->sType;
+      kArg->dType = kernArgs->at(i).get()->dType;
+
+      if (kernArgs->at(i).get()->sType == HC_ADDR) {
+        kArg->mem.reset(new HSAMemoryObject(
+                      kernArgs->at(i).get()->size * SizeOfType(kernArgs->at(i).get()->dType), m_agent, MEM_SYS));
+        fill_mem(kArg->mem.get(), kernArgs->at(i).get());
+      } else if (kernArgs->at(i).get()->sType == HC_VALUE){
+        memcpy(&kArg->value, &kernArgs->at(i).get()->value, sizeof(kArg->value));
+      }
+      kArgs.push_back(std::unique_ptr<HsacoKernArg>(kArg));
     }
+    std::cout << "size of kArgs: " << kArgs.size() << std::endl;
   };
 
-  auto fill_mem = [] (HSAMemoryObject *mem, VCDataType type, JsonKernArg *j_ka) {
-    //if (type == VC_INT)
-    //  mem->Fill<int>(*((int*)value));
-    //else if (type == VC_FLOAT)
-    //  mem->Fill<float>(*((float*)value));
-    //else if (type == VC_DOUBLE)
-    //  mem->Fill<double>(*((double*)value));
-    if (type == VC_INT)
-      mem->Fill<int>(j_ka->value.i);
-    else if (type == VC_FLOAT)
-      mem->Fill<float>(j_ka->value.f);
-    else if (type == VC_DOUBLE)
-      mem->Fill<double>(j_ka->value.d);
+  int num_of_kernargs = kernArgs->size();
+  std::unique_ptr<HSAMemoryObject> mem_kernArgs(new HSAMemoryObject(num_of_kernargs * sizeof(uint64_t), m_agent, MEM_KERNARG));
+
+  auto init_pkg_kernarg_addr = [&]() {
+    auto set_kernarg_addr = [](char **addr, HSAMemoryObject* mem) {
+      *((uint64_t*)(*addr)) = (uint64_t)mem->As<void*>();
+      *addr += sizeof(uint64_t);
+    };
+    auto set_kernarg_val = [](char **addr, HsacoKernArg* ka) {
+      if (ka->dType == VC_INT) {
+        *((int*)(*addr)) = ka->value.i;
+        *addr += sizeof(int);
+      } else if (ka->dType == VC_FLOAT) {
+        *((float*)(*addr)) = ka->value.f;
+        *addr += sizeof(float);
+      } else if (ka->dType == VC_DOUBLE) {
+        *((double*)(*addr)) = ka->value.d;
+        *addr += sizeof(double);
+      }
+    };
+    char *p = mem_kernArgs.get()->As<char*>();
+    for (size_t i = 0; i < kArgs.size(); ++i){
+      if (kArgs[i].get()->sType == HC_ADDR) {
+        set_kernarg_addr(&p, kArgs[i]->mem.get());
+      } else if (kArgs[i].get()->sType == HC_VALUE) {
+        set_kernarg_val(&p, kArgs[i].get());
+      }
+    }
+    // debug
+    for (int i = 0; i < 10; i++)
+      std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << mem_kernArgs.get()->As<uint32_t*>()[i] << std::endl;
+    packet.kernarg_address = mem_kernArgs.get()->As<void*>();
   };
 
   auto init_pkg_dim = [&] () {
@@ -379,62 +409,7 @@ void Replayer::HsacoSubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<Json
     packet.grid_size_z = (uint16_t)aql->grid_size_z;
   };
 
-  for (int i = 0; i < (int)kernArgs->size(); i++) {
-    if (kernArgs->at(i).get()->sType == HC_ADDR) {
-      HsacoKernArg *kArg = new HsacoKernArg();
-      kArg->mem.reset(new HSAMemoryObject(
-                     kernArgs->at(i).get()->size * type_size(kernArgs->at(i).get()->dType), m_agent, MEM_SYS));
-      fill_mem(kArg->mem.get(), VC_FLOAT, kernArgs->at(i).get());
-      //kArg->mem.get()->Fill<float>(1.1);
-      kArgs.push_back(std::unique_ptr<HsacoKernArg>(kArg));
-    } else if (kernArgs->at(i).get()->sType == HC_VALUE){
-      HsacoKernArg *kArg = new HsacoKernArg();
-      kArg->value.i = 10;
-      kArgs.push_back(std::unique_ptr<HsacoKernArg>(kArg));
-    }
-  }
-  std::cout << "size of kArgs: " << kArgs.size() << std::endl;
-
-
-  //HSAMemoryObject in_A(V_LEN * sizeof(float), m_agent, MEM_SYS);
-  //HSAMemoryObject in_B(V_LEN * sizeof(float), m_agent, MEM_SYS);
-  //HSAMemoryObject in_C(V_LEN * sizeof(float), m_agent, MEM_SYS);
-  //for (int i = 0; i < V_LEN; i++) in_A.As<float*>()[i] = i;
-  //in_B.Fill<float>((float)1.0);
-  //in_C.Fill<float>((float)0.0);
-
-  int num_of_kernargs = kArgs.size();
-  HSAMemoryObject args(sizeof(uint64_t) * num_of_kernargs, m_agent, MEM_KERNARG);
-  std::unique_ptr<HSAMemoryObject> mem_kernArgs(new HSAMemoryObject(num_of_kernargs * sizeof(uint64_t), m_agent, MEM_KERNARG));
-
-  auto set_kernarg_addr = [&](char **addr, HSAMemoryObject* mem) {
-    *((uint64_t*)(*addr)) = (uint64_t)mem->As<void*>();
-    *addr += sizeof(uint64_t);
-  };
-
-  auto init_pkg_kernarg_addr = [&]() {
-    char *p = args.As<char*>();
-    //set_kernarg_addr(&p, &in_A);
-    //set_kernarg_addr(&p, &in_B);
-    //set_kernarg_addr(&p, &in_C);
-
-    p = mem_kernArgs.get()->As<char*>();
-
-    for (size_t i = 0; i < kArgs.size(); ++i){
-      set_kernarg_addr(&p, kArgs[i]->mem.get());
-    }
-
-    // debug
-    //for (int i = 0; i < 10; i++) {
-    //  std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << args.As<uint32_t*>()[i] << std::endl;
-    //}
-    for (int i = 0; i < 10; i++)
-      std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << mem_kernArgs.get()->As<uint32_t*>()[i] << std::endl;
-    //packet.kernarg_address = args.As<void*>();
-    packet.kernarg_address = mem_kernArgs.get()->As<void*>();
-  };
-
-  auto init_pkg_vector_add = [&]() {
+  auto init_pkg_kernel_object = [&]() {
     hsa_status_t status;
     status = hsa_executable_symbol_get_info(m_executable->GetSymbol(),
                                     HSA_EXECUTABLE_SYMBOL_INFO_KERNEL_OBJECT,
@@ -451,15 +426,12 @@ void Replayer::HsacoSubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<Json
   };
 
   init_pkg_dim();
+  init_kern_args_value();
   init_pkg_kernarg_addr();
-  init_pkg_vector_add();
+  init_pkg_kernel_object();
   m_queue->SubmitPacket(packet);
 
-  for (int i = 0; i < V_LEN; i++) {
+  for (int i = 0; i < kernArgs->at(2).get()->size; ++i) {
     std::cout << kArgs[2]->mem.get()->As<float*>()[i] << std::endl;
   }
-
-  //for (int i = 0; i < V_LEN; i++) {
-  //  std::cout << in_C.As<float*>()[i] << std::endl;
-  //}
 }

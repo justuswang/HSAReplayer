@@ -54,6 +54,10 @@ class HSAMemoryObject {
     void Fill(T value) {
       for (size_t i = 0; i < m_size / sizeof(T); i++) reinterpret_cast<T*>(m_ptr)[i] = value;
     }
+    template<typename T>
+    void Fill(T value, T inc) {
+      for (size_t i = 0; i < m_size / sizeof(T); i++) reinterpret_cast<T*>(m_ptr)[i] = value + inc;
+    }
 
   private:
     size_t m_size;

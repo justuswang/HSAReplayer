@@ -16,6 +16,8 @@ enum VCDataType {
     VC_MAX,
 };
 
+VCDataType DataType(const char *type);
+size_t SizeOfType(VCDataType type);
 // TODO: collect all data type in a global header file
 class HsacoAql
 {
@@ -80,6 +82,7 @@ class HsacoKernArg
 {
 public:
   HCStoreType sType;
+  VCDataType dType;
   std::unique_ptr<HSAMemoryObject> mem;
   union {
       int i;

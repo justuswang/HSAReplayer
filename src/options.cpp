@@ -29,18 +29,6 @@ void Options::PrintHelp()
 
 using json = nlohmann::json;
 
-VCDataType Options::DataType(const char *type)
-{
-  VCDataType t = VC_INVALID;
-  if (strncmp(type, "float", sizeof("float")-1) == 0)
-    t = VC_FLOAT;
-  else if (strncmp(type, "int", sizeof("int")-1) == 0)
-    t = VC_INT;
-  else if (strncmp(type, "double", sizeof("double")-1) == 0)
-    t = VC_DOUBLE;
-return t;
-}
-
 void Options::ParseJson()
 {
   std::ifstream f(m_jsonFile);
@@ -82,6 +70,12 @@ void Options::ParseJson()
       std::cout << "value: " << j["hsaco_kernel_args"][i]["value"] << std::endl;
       j_kernArgs[i].get()->value.f = j["hsaco_kernel_args"][i]["value"];
       std::cout << "val: " << j_kernArgs[i].get()->value.f << std::endl;
+    } else if (j_kernArgs[i].get()->dType == VC_DOUBLE) {
+      j_kernArgs[i].get()->value.d = j["hsaco_kernel_args"][i]["value"];
+    } else if (j_kernArgs[i].get()->dType == VC_INT) {
+      j_kernArgs[i].get()->value.i = j["hsaco_kernel_args"][i]["value"];
+    } else {
+      std::cerr << "json: Unknown data type " << i <<": " <<  j["hsaco_kernel_args"][i]["value"] << std::endl;
     }
   }
 }

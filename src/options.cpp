@@ -49,10 +49,10 @@ void Options::ParseJson()
   json j = json::parse(f);
   if (g_opts.Debug()) {
     std::cout << "version: " << j["version"] << std::endl;
-    std::cout << "kernel args: " << j["kernel_args"].size() << std::endl;
+    std::cout << "kernel args: " << j["vc_kernel_args"].size() << std::endl;
   }
-  for (int i = 0; i < (int)j["kernel_args"].size(); i++) {
-    std::string str = j["kernel_args"][i][1].dump();
+  for (int i = 0; i < (int)j["vc_kernel_args"].size(); i++) {
+    std::string str = j["vc_kernel_args"][i][1].dump();
     ParseKernArg((const char*)str.substr(1, str.size() - 2).c_str());
   }
 }

@@ -335,6 +335,10 @@ void Replayer::SubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<JsonKernA
 
 void Replayer::HsacoSubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<JsonKernArg>> *kernArgs)
 {
+  if (aql == NULL || kernArgs == NULL || kernArgs->size() == 0) {
+    std::cerr << "Invalid parameters!" << std::endl;
+    return;
+  }
   hsa_kernel_dispatch_packet_t packet = { 0 };
   std::vector<std::unique_ptr<HsacoKernArg>> kArgs;
 

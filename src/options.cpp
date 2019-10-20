@@ -49,33 +49,37 @@ void Options::ParseJson()
 
   // hsaco
   std::cout << "hsaco AQL: " << j["hsaco_aql"].size() << std::endl;
-  m_hsacoAql.SetAll(j["hsaco_aql"]["dim"],
-                  j["hsaco_aql"]["workgroup_size_x"],
-                  j["hsaco_aql"]["workgroup_size_y"],
-                  j["hsaco_aql"]["workgroup_size_z"],
-                  j["hsaco_aql"]["grid_size_x"],
-                  j["hsaco_aql"]["grid_size_y"],
-                  j["hsaco_aql"]["grid_size_z"]);
+  if (j["hsaco_aql"].size() > 0) {
+    m_hsacoAql.SetAll(j["hsaco_aql"]["dim"],
+                    j["hsaco_aql"]["workgroup_size_x"],
+                    j["hsaco_aql"]["workgroup_size_y"],
+                    j["hsaco_aql"]["workgroup_size_z"],
+                    j["hsaco_aql"]["grid_size_x"],
+                    j["hsaco_aql"]["grid_size_y"],
+                    j["hsaco_aql"]["grid_size_z"]);
+  }
 
   std::cout << "hsaco KernArgs: " << j["hsaco_kernel_args"].size() << std::endl;
-  for (size_t i = 0; i < j["hsaco_kernel_args"].size(); ++i) {
-    std::string str = j["hsaco_kernel_args"][i]["data_type"].dump();
-    std::cout << str.substr(1, str.size() - 2) << std::endl;
-    j_kernArgs.push_back(std::unique_ptr<JsonKernArg>(new JsonKernArg));
-    j_kernArgs[i].get()->SetAll(j["hsaco_kernel_args"][i]["index"],
-                                j["hsaco_kernel_args"][i]["store_type"],
-                                (const char*)str.substr(1, str.size() - 2).c_str(),
-                                j["hsaco_kernel_args"][i]["size"]);
-    if (j_kernArgs[i].get()->dType == VC_FLOAT) {
-      std::cout << "value: " << j["hsaco_kernel_args"][i]["value"] << std::endl;
-      j_kernArgs[i].get()->value.f = j["hsaco_kernel_args"][i]["value"];
-      std::cout << "val: " << j_kernArgs[i].get()->value.f << std::endl;
-    } else if (j_kernArgs[i].get()->dType == VC_DOUBLE) {
-      j_kernArgs[i].get()->value.d = j["hsaco_kernel_args"][i]["value"];
-    } else if (j_kernArgs[i].get()->dType == VC_INT) {
-      j_kernArgs[i].get()->value.i = j["hsaco_kernel_args"][i]["value"];
-    } else {
-      std::cerr << "json: Unknown data type " << i <<": " <<  j["hsaco_kernel_args"][i]["value"] << std::endl;
+  if (j["hsaco_kernel_args"].size() > 0) {
+    for (size_t i = 0; i < j["hsaco_kernel_args"].size(); ++i) {
+      std::string str = j["hsaco_kernel_args"][i]["data_type"].dump();
+      std::cout << str.substr(1, str.size() - 2) << std::endl;
+      j_kernArgs.push_back(std::unique_ptr<JsonKernArg>(new JsonKernArg));
+      j_kernArgs[i].get()->SetAll(j["hsaco_kernel_args"][i]["index"],
+                                  j["hsaco_kernel_args"][i]["store_type"],
+                                  (const char*)str.substr(1, str.size() - 2).c_str(),
+                                  j["hsaco_kernel_args"][i]["size"]);
+      if (j_kernArgs[i].get()->dType == VC_FLOAT) {
+        std::cout << "value: " << j["hsaco_kernel_args"][i]["value"] << std::endl;
+        j_kernArgs[i].get()->value.f = j["hsaco_kernel_args"][i]["value"];
+        std::cout << "val: " << j_kernArgs[i].get()->value.f << std::endl;
+      } else if (j_kernArgs[i].get()->dType == VC_DOUBLE) {
+        j_kernArgs[i].get()->value.d = j["hsaco_kernel_args"][i]["value"];
+      } else if (j_kernArgs[i].get()->dType == VC_INT) {
+        j_kernArgs[i].get()->value.i = j["hsaco_kernel_args"][i]["value"];
+      } else {
+        std::cerr << "json: Unknown data type " << i <<": " <<  j["hsaco_kernel_args"][i]["value"] << std::endl;
+      }
     }
   }
 }

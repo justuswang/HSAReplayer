@@ -52,6 +52,11 @@ class JsonKernArg
     HCStoreType sType;
     VCDataType dType;
     int size;
+    union {
+        int i;
+        float f;
+        double d;
+    }value;
 
     void SetAll(int idx, int s_type, const char *d_type, int sz)
     {
@@ -76,7 +81,11 @@ class HsacoKernArg
 public:
   HCStoreType sType;
   std::unique_ptr<HSAMemoryObject> mem;
-  uint32_t value;
+  union {
+      int i;
+      float f;
+      double d;
+  }value;
 };
 
 enum VCSectionType {

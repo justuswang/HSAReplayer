@@ -32,7 +32,8 @@ private:
   void SetName(char** name) { m_progName = *name; }
   void PrintHelp();
   void ParseJson();
-  void ParseKernArg(const char *type);
+  //void ParseKernArg(const char *type);
+  VCDataType DataType(const char *type);
 
   std::string m_progName;
   std::string m_fileName;

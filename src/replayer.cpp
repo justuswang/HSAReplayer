@@ -1,4 +1,5 @@
 #include "replayer.hpp"
+#include <typeinfo>
 
 Replayer::Replayer()
   : m_executable(NULL),
@@ -353,13 +354,19 @@ void Replayer::HsacoSubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<Json
     }
   };
 
-  auto fill_mem = [] (HSAMemoryObject *mem, VCDataType type, uint64_t value) {
+  auto fill_mem = [] (HSAMemoryObject *mem, VCDataType type, JsonKernArg *j_ka) {
+    //if (type == VC_INT)
+    //  mem->Fill<int>(*((int*)value));
+    //else if (type == VC_FLOAT)
+    //  mem->Fill<float>(*((float*)value));
+    //else if (type == VC_DOUBLE)
+    //  mem->Fill<double>(*((double*)value));
     if (type == VC_INT)
-      mem->Fill<int>((int)value);
+      mem->Fill<int>(j_ka->value.i);
     else if (type == VC_FLOAT)
-      mem->Fill<float>((float)value);
+      mem->Fill<float>(j_ka->value.f);
     else if (type == VC_DOUBLE)
-      mem->Fill<double>((double)value);
+      mem->Fill<double>(j_ka->value.d);
   };
 
   auto init_pkg_dim = [&] () {
@@ -377,27 +384,28 @@ void Replayer::HsacoSubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<Json
       HsacoKernArg *kArg = new HsacoKernArg();
       kArg->mem.reset(new HSAMemoryObject(
                      kernArgs->at(i).get()->size * type_size(kernArgs->at(i).get()->dType), m_agent, MEM_SYS));
-      kArg->mem.get()->Fill<float>(1.1);
+      fill_mem(kArg->mem.get(), VC_FLOAT, kernArgs->at(i).get());
+      //kArg->mem.get()->Fill<float>(1.1);
       kArgs.push_back(std::unique_ptr<HsacoKernArg>(kArg));
     } else if (kernArgs->at(i).get()->sType == HC_VALUE){
       HsacoKernArg *kArg = new HsacoKernArg();
-      kArg->value = 10;
+      kArg->value.i = 10;
       kArgs.push_back(std::unique_ptr<HsacoKernArg>(kArg));
     }
   }
   std::cout << "size of kArgs: " << kArgs.size() << std::endl;
 
-  std::unique_ptr<HSAMemoryObject> mem_kernArgs(new HSAMemoryObject(16 * sizeof(uint64_t), m_agent, MEM_KERNARG));
 
-  HSAMemoryObject in_A(V_LEN * sizeof(float), m_agent, MEM_SYS);
-  HSAMemoryObject in_B(V_LEN * sizeof(float), m_agent, MEM_SYS);
-  HSAMemoryObject in_C(V_LEN * sizeof(float), m_agent, MEM_SYS);
-  for (int i = 0; i < V_LEN; i++) in_A.As<float*>()[i] = i;
-  in_B.Fill<float>((float)1.0);
-  in_C.Fill<float>((float)0.0);
+  //HSAMemoryObject in_A(V_LEN * sizeof(float), m_agent, MEM_SYS);
+  //HSAMemoryObject in_B(V_LEN * sizeof(float), m_agent, MEM_SYS);
+  //HSAMemoryObject in_C(V_LEN * sizeof(float), m_agent, MEM_SYS);
+  //for (int i = 0; i < V_LEN; i++) in_A.As<float*>()[i] = i;
+  //in_B.Fill<float>((float)1.0);
+  //in_C.Fill<float>((float)0.0);
 
   int num_of_kernargs = kArgs.size();
   HSAMemoryObject args(sizeof(uint64_t) * num_of_kernargs, m_agent, MEM_KERNARG);
+  std::unique_ptr<HSAMemoryObject> mem_kernArgs(new HSAMemoryObject(num_of_kernargs * sizeof(uint64_t), m_agent, MEM_KERNARG));
 
   auto set_kernarg_addr = [&](char **addr, HSAMemoryObject* mem) {
     *((uint64_t*)(*addr)) = (uint64_t)mem->As<void*>();
@@ -406,23 +414,20 @@ void Replayer::HsacoSubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<Json
 
   auto init_pkg_kernarg_addr = [&]() {
     char *p = args.As<char*>();
-    set_kernarg_addr(&p, &in_A);
-    set_kernarg_addr(&p, &in_B);
-    set_kernarg_addr(&p, &in_C);
+    //set_kernarg_addr(&p, &in_A);
+    //set_kernarg_addr(&p, &in_B);
+    //set_kernarg_addr(&p, &in_C);
 
     p = mem_kernArgs.get()->As<char*>();
 
     for (size_t i = 0; i < kArgs.size(); ++i){
       set_kernarg_addr(&p, kArgs[i]->mem.get());
     }
-    //set_kernarg_addr(&p, &in_A);
-    //set_kernarg_addr(&p, &in_B);
-    //set_kernarg_addr(&p, &in_C);
 
     // debug
-    for (int i = 0; i < 10; i++) {
-      std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << args.As<uint32_t*>()[i] << std::endl;
-    }
+    //for (int i = 0; i < 10; i++) {
+    //  std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << args.As<uint32_t*>()[i] << std::endl;
+    //}
     for (int i = 0; i < 10; i++)
       std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << mem_kernArgs.get()->As<uint32_t*>()[i] << std::endl;
     //packet.kernarg_address = args.As<void*>();
@@ -453,6 +458,7 @@ void Replayer::HsacoSubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<Json
   for (int i = 0; i < V_LEN; i++) {
     std::cout << kArgs[2]->mem.get()->As<float*>()[i] << std::endl;
   }
+
   //for (int i = 0; i < V_LEN; i++) {
   //  std::cout << in_C.As<float*>()[i] << std::endl;
   //}

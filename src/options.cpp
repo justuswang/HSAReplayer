@@ -1,4 +1,5 @@
 #include "options.hpp"
+#include <typeinfo>
 
 Options g_opts;
 
@@ -28,16 +29,16 @@ void Options::PrintHelp()
 
 using json = nlohmann::json;
 
-void Options::ParseKernArg(const char *type)
+VCDataType Options::DataType(const char *type)
 {
+  VCDataType t = VC_INVALID;
   if (strncmp(type, "float", sizeof("float")-1) == 0)
-    kernArgs.push_back(VC_FLOAT);
+    t = VC_FLOAT;
   else if (strncmp(type, "int", sizeof("int")-1) == 0)
-    kernArgs.push_back(VC_INT);
+    t = VC_INT;
   else if (strncmp(type, "double", sizeof("double")-1) == 0)
-    kernArgs.push_back(VC_DOUBLE);
-  else if (strncmp(type, "uint32", sizeof("uint32")-1) == 0)
-    kernArgs.push_back(VC_UINT32);
+    t = VC_DOUBLE;
+return t;
 }
 
 void Options::ParseJson()
@@ -55,7 +56,7 @@ void Options::ParseJson()
   }
   for (int i = 0; i < (int)j["vc_kernel_args"].size(); i++) {
     std::string str = j["vc_kernel_args"][i][1].dump();
-    ParseKernArg((const char*)str.substr(1, str.size() - 2).c_str());
+    kernArgs.push_back(DataType((const char*)str.substr(1, str.size() - 2).c_str()));
   }
 
   // hsaco
@@ -77,12 +78,12 @@ void Options::ParseJson()
                                 j["hsaco_kernel_args"][i]["store_type"],
                                 (const char*)str.substr(1, str.size() - 2).c_str(),
                                 j["hsaco_kernel_args"][i]["size"]);
+    if (j_kernArgs[i].get()->dType == VC_FLOAT) {
+      std::cout << "value: " << j["hsaco_kernel_args"][i]["value"] << std::endl;
+      j_kernArgs[i].get()->value.f = j["hsaco_kernel_args"][i]["value"];
+      std::cout << "val: " << j_kernArgs[i].get()->value.f << std::endl;
+    }
   }
-  //for (size_t i = 0; i < j_kernArgs.size(); ++i) {
-  //  std::cout << j_kernArgs[i].get()->index << ":"
-  //            << j_kernArgs[i].get()->size << ":"
-  //            << j_kernArgs[i].get()->dTpye << std::endl;
-  //}
 }
 
 VCSectionType Options::TypePop()

@@ -9,6 +9,7 @@
 #include <string>
 #include <iostream>
 #include <unistd.h> // close()
+#include "global.hpp"
 
 #define EXPECT_SUCCESS(val) assert(HSA_STATUS_SUCCESS == (val))
 #define EXPECT_FOUND(val) assert(HSA_STATUS_INFO_BREAK == (val))
@@ -54,9 +55,16 @@ class HSAMemoryObject {
     void Fill(T value) {
       for (size_t i = 0; i < m_size / sizeof(T); i++) reinterpret_cast<T*>(m_ptr)[i] = value;
     }
-    template<typename T>
-    void Fill(T value, T inc) {
-      for (size_t i = 0; i < m_size / sizeof(T); i++) reinterpret_cast<T*>(m_ptr)[i] = value + inc;
+
+    void Fill(JsonKernArg *j_ka) {
+      if (j_ka->dType == VC_INT)
+        Fill<int>(j_ka->value.i);
+      else if (j_ka->dType == VC_FLOAT)
+        Fill<float>(j_ka->value.f);
+      else if (j_ka->dType == VC_DOUBLE)
+        Fill<double>(j_ka->value.d);
+      else
+        std::cerr << "Unknown data type: " << j_ka->dType << std::endl;
     }
 
   private:

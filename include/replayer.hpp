@@ -8,10 +8,24 @@
 
 #include "hsautils.hpp"
 #include "section.hpp"
+#include "global.hpp"
 
 enum ReplayMode {
   RE_VC = 1,
   RE_HSACO,
+};
+
+class HsacoKernArg
+{
+public:
+  HCStoreType sType;
+  VCDataType dType;
+  std::unique_ptr<HSAMemoryObject> mem;
+  union {
+      int i;
+      float f;
+      double d;
+  }value;
 };
 
 

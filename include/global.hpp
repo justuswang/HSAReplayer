@@ -6,7 +6,6 @@
 #include <string>
 #include <cstring>
 #include <iostream>
-#include "hsautils.hpp"
 
 enum VCDataType {
     VC_INVALID = -1,
@@ -68,19 +67,6 @@ class JsonKernArg
       size = sz;
       dType = DataType(d_type);
     }
-};
-
-class HsacoKernArg
-{
-public:
-  HCStoreType sType;
-  VCDataType dType;
-  std::unique_ptr<HSAMemoryObject> mem;
-  union {
-      int i;
-      float f;
-      double d;
-  }value;
 };
 
 enum VCSectionType {

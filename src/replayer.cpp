@@ -343,15 +343,6 @@ void Replayer::HsacoSubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<Json
   std::vector<std::unique_ptr<HsacoKernArg>> kArgs;
 
   auto init_kern_args_value = [&]() {
-    auto fill_mem = [] (HSAMemoryObject *mem, JsonKernArg *j_ka) {
-      if (j_ka->dType == VC_INT)
-        mem->Fill<int>(j_ka->value.i);
-      else if (j_ka->dType == VC_FLOAT)
-        mem->Fill<float>(j_ka->value.f);
-      else if (j_ka->dType == VC_DOUBLE)
-        mem->Fill<double>(j_ka->value.d);
-    };
-
     for (int i = 0; i < (int)kernArgs->size(); i++) {
       HsacoKernArg *kArg = new HsacoKernArg();
       kArg->sType = kernArgs->at(i).get()->sType;
@@ -360,7 +351,7 @@ void Replayer::HsacoSubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<Json
       if (kernArgs->at(i).get()->sType == HC_ADDR) {
         kArg->mem.reset(new HSAMemoryObject(
                       kernArgs->at(i).get()->size * SizeOfType(kernArgs->at(i).get()->dType), m_agent, MEM_SYS));
-        fill_mem(kArg->mem.get(), kernArgs->at(i).get());
+        kArg->mem.get()->Fill(kernArgs->at(i).get());
       } else if (kernArgs->at(i).get()->sType == HC_VALUE){
         memcpy(&kArg->value, &kernArgs->at(i).get()->value, sizeof(kArg->value));
       }

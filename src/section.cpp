@@ -32,13 +32,13 @@ void VCSection::SetValue(std::string &str)
   if (!IsAddr())
     return;
 
-  if (str.rfind("0x", 2) != std::string::npos) {
+  if (str.find("0x") != std::string::npos) {
     if (OutOfMemory(m_pos)) {
       std::cerr << "Out of memory size!" << std::endl;
       return;
     }
     char *end;
-    m_mem->As<uint32_t*>()[m_pos++] = std::strtol(str.c_str(), &end, 16);
+    m_mem->As<uint32_t*>()[m_pos++] = std::strtol((str.substr(str.find("0x"))).c_str(), &end, 16);
   }
 }
 

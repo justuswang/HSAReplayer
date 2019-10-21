@@ -62,8 +62,10 @@ HSAMemoryObject::HSAMemoryObject(size_t size, hsa_agent_t agent, MemoryRegionTyp
 
 HSAMemoryObject::~HSAMemoryObject()
 {
-  EXPECT_SUCCESS(hsa_memory_free(m_ptr));
-  m_ptr = NULL;
+  if (m_ptr) {
+    EXPECT_SUCCESS(hsa_memory_free(m_ptr));
+    m_ptr = NULL;
+  }
 }
 
 hsa_status_t HSAMemoryObject::get_local_memory_cb(hsa_region_t region, void *data)
@@ -140,6 +142,33 @@ hsa_status_t HSAMemoryObject::get_kernarg_memory_cb(hsa_region_t region, void *d
   return HSA_STATUS_INFO_BREAK;
 }
 
+std::ostream& HSAMemoryObject::Print(std::ostream &out)
+{
+  if (m_size == 0) {
+    out << "No data to print!" << std::endl;
+    return out;
+  }
+  //out << Name() << ":" << std::endl;
+  //out << m_seperator << std::endl;
+  if (m_dtype == VC_UINT32) {
+    for (size_t i = 0; i < Number<uint32_t>(); i++)
+      out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::dec << std::endl;
+  } else if (m_dtype == VC_INT) {
+    for (size_t i = 0; i < Number<uint32_t>(); i++)
+      out << As<int*>()[i] << std::endl;
+  } else if (m_dtype == VC_FLOAT) {
+    for (size_t i = 0; i < Number<uint32_t>(); i++)
+      out << As<float*>()[i] << std::endl;
+  } else if (m_dtype == VC_DOUBLE) {
+    for (size_t i = 0; i < Number<uint64_t>(); i++)
+      out << As<double*>()[i] << std::endl;
+  } else { // default to show it as uint32_t
+    for (size_t i = 0; i < Number<uint32_t>(); i++)
+      out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::dec <<std::endl;
+  }
+  return out;
+}
+
 // ================================================================================
 // HSA Signal
 // ================================================================================
@@ -159,6 +188,71 @@ void HSASignal::Wait(hsa_signal_condition_t condition, hsa_signal_value_t value)
 HSASignal::~HSASignal(void)
 {
   EXPECT_SUCCESS(hsa_signal_destroy(m_signal));
+}
+
+// ================================================================================
+// HSA executable
+// ================================================================================
+
+HSAExecutable::HSAExecutable(hsa_agent_t agent,
+                  hsa_profile_t profile,
+                  hsa_default_float_rounding_mode_t rounding_mode)
+  : m_agent(agent),
+    m_profile(profile),
+    m_round_mode(rounding_mode)
+{
+  m_executable.handle = 0;
+  EXPECT_SUCCESS(hsa_executable_create_alt(m_profile,
+                                     m_round_mode,
+                                     NULL, // options
+                                     &m_executable));
+}
+
+HSAExecutable::~HSAExecutable(void)
+{
+  if (m_executable.handle != 0)
+    EXPECT_SUCCESS(hsa_executable_destroy(m_executable));
+  else
+    return;
+}
+
+hsa_status_t HSAExecutable::LoadCodeObject(const char *fileName, const char *kernelName)
+{
+  hsa_status_t status;
+  hsa_code_object_reader_t reader;
+
+  m_fileName = fileName;
+  m_kernelName = kernelName;
+  DBG("Code object file: " << m_fileName);
+  DBG("Kernel name: " << m_kernelName);
+
+  int fd = open(m_fileName.c_str(), O_RDONLY);
+  if (fd <= 0) {
+    std::cerr << "Failed to open file: " << m_fileName << std::endl;
+    return HSA_STATUS_ERROR;
+  }
+
+  EXPECT_SUCCESS(hsa_code_object_reader_create_from_file(fd, &reader));
+  close(fd);
+
+  status = hsa_executable_load_agent_code_object(m_executable, m_agent,
+                                        reader,
+                                        NULL, // options
+                                        NULL); // loaded_code_object
+  EXPECT_SUCCESS(status);
+
+  status = hsa_code_object_reader_destroy(reader);
+  EXPECT_SUCCESS(status);
+
+  status = hsa_executable_freeze(m_executable, NULL/* options */);
+  EXPECT_SUCCESS(status);
+
+  status = hsa_executable_get_symbol_by_name(m_executable,
+                                             m_kernelName.c_str(),
+                                             &m_agent,
+                                             &m_symbol);
+  EXPECT_SUCCESS(status);
+  return status;
 }
 
 // ================================================================================

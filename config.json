@@ -1,0 +1,26 @@
+{
+    "version": 0.2,
+    "vc_kernel_args": [
+        [0, "float"],
+        [1, "float"],
+        [2, "float"],
+        [3, "int"],
+        [4, "int"]
+    ],
+    "hsaco_kernel_obj": {
+        "symbol"           : "vector_add",
+        "dim"              : 1,
+        "workgroup_size_x" : 16,
+        "workgroup_size_y" : 1,
+        "workgroup_size_z" : 1,
+        "grid_size_x"      : 16,
+        "grid_size_y"      : 1,
+        "grid_size_z"      : 1
+    },
+    "hsaco_kernel_args": [
+        {"index":0, "store_type":0, "data_type":"float", "size":16, "value":1.2},
+        {"index":1, "store_type":0, "data_type":"float", "size":16, "value":1.2},
+        {"index":2, "store_type":0, "data_type":"float", "size":16, "value":0.0},
+        {"index":2, "store_type":1, "data_type":"int",   "size":16, "value":12}
+    ]
+}

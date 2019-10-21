@@ -4,25 +4,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <memory>
 #include "hsautils.hpp"
+#include "global.hpp"
 
-enum VCSectionType {
-  VC_NULL = -1,
-  VC_AQL = 0,
-  VC_KERN_OBJ,
-  VC_KERN_ARG_POOL,
-  VC_KERN_ARG,
-  VC_TYPE_MAX,
-};
-
-enum VCDataType {
-    VC_INVALID = -1,
-    VC_UINT32 = 0,
-    VC_INT,
-    VC_FLOAT,
-    VC_DOUBLE,
-    VC_MAX,
-};
 
 class VCSection {
 public:

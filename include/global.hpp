@@ -19,7 +19,7 @@ enum VCDataType {
 VCDataType DataType(const char *type);
 size_t SizeOfType(VCDataType type);
 
-class HsacoAql
+class JsonKernObj
 {
   public:
     void SetAll(int d, int wg_x, int wg_y, int wg_z, int g_x, int g_y, int g_z)

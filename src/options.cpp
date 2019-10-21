@@ -55,7 +55,7 @@ void Options::ParseJson()
   std::cout << "hsaco kernel symbol: " << m_symbol << std::endl;
 
   if (j[HSACO_KERN_OBJ].size() > 0) {
-    m_hsacoAql.SetAll(j[HSACO_KERN_OBJ]["dim"],
+    j_kernObj.SetAll(j[HSACO_KERN_OBJ]["dim"],
                     j[HSACO_KERN_OBJ]["workgroup_size_x"],
                     j[HSACO_KERN_OBJ]["workgroup_size_y"],
                     j[HSACO_KERN_OBJ]["workgroup_size_z"],

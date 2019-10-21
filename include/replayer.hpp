@@ -45,16 +45,13 @@ public:
   void SetDataTypes(std::vector<VCDataType> *argsType);
 
   void CreateQueue(uint32_t size, hsa_queue_type32_t type);
-  void SubmitPacket(void);
-  void SubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<JsonKernArg>> *kernArgs);
+  void SubmitPacket(JsonKernObj *kernObj = NULL, std::vector<std::unique_ptr<JsonKernArg>> *kernArgs = NULL);
 
 private:
   int LoadVectorFile(const char *fileName);
   int LoadHsacoFile(const char *fileName, const char *symbol);
   void VCSubmitPacket(void);
-  void HsacoSubmitPacket(void);
-  //void HsacoSubmitPacket(HsacoAql *aql);
-  void HsacoSubmitPacket(HsacoAql *aql, std::vector<std::unique_ptr<JsonKernArg>> *kernArgs);
+  void HsacoSubmitPacket(JsonKernObj *kernObj, std::vector<std::unique_ptr<JsonKernArg>> *kernArgs);
   bool IsVCMode(void) { return m_mode == RE_VC; }
 
   std::vector<VCSection*> m_sections;

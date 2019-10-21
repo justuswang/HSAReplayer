@@ -50,8 +50,10 @@ int Replayer::LoadVectorFile(const char *fileName)
     }
     while (!inputFile.eof()) {
       std::getline(inputFile, line);
-      if (line.find("@aql_pkt") != std::string::npos)
+      if (line.find("@aql_pkt") != std::string::npos) {
         type = VC_AQL;
+        break;
+      }
     }
     if (type == VC_AQL)
       return 0;
@@ -99,7 +101,7 @@ int Replayer::LoadVectorFile(const char *fileName)
       m_sections.push_back(sec);
     }
     
-    if ((type == VC_NULL) && line.empty())
+    if ((type == VC_NULL) || line.empty() || (line.find("@") != std::string::npos))
       continue;
 
     if (sec != NULL)

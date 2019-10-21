@@ -9,6 +9,9 @@
 #include "section.hpp"
 #include "json.hpp"
 
+#define HSACO_KERN_OBJ    "hsaco_kernel_obj"
+#define HSACO_KERN_ARGS    "hsaco_kernel_args"
+
 class Options {
 public:
   Options();
@@ -16,6 +19,7 @@ public:
   VCSectionType TypePop();
   int TypeNum() const { return m_type_cnt; }
   const char * FileName() const { return m_fileName.c_str(); }
+  const char * KernelSymbol() const { return m_symbol.c_str(); }
   void PrintSection(void (*print)(VCSectionType type));
   std::vector<VCDataType>* KernArgTypes()
   {
@@ -35,6 +39,7 @@ private:
 
   std::string m_progName;
   std::string m_fileName;
+  std::string m_symbol; // kernel symbol for hsaco only
   std::string m_defaultFileName;
   std::string m_jsonFile;
   std::string m_defaultJsonFile;

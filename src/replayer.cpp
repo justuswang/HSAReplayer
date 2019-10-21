@@ -129,13 +129,13 @@ void Replayer::UpdateKernelArgPool()
   //}
 }
 
-int Replayer::LoadHsacoFile(const char *fileName)
+int Replayer::LoadHsacoFile(const char *fileName, const char *symbol)
 {
-  m_executable->LoadCodeObject(fileName, "vector_add");
+  m_executable->LoadCodeObject(fileName, symbol);
   return 0;
 }
 
-int Replayer::LoadData(const char *fileName)
+int Replayer::LoadData(const char *fileName, const char *symbol)
 {
   int ret = 0;
   auto SetMode = [&] () -> int {
@@ -160,7 +160,7 @@ int Replayer::LoadData(const char *fileName)
   if (m_mode == RE_VC) {
     ret = LoadVectorFile(fileName);
   } else {
-    ret = LoadHsacoFile(fileName);
+    ret = LoadHsacoFile(fileName, symbol);
   }
 
   return ret;

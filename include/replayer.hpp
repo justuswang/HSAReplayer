@@ -34,7 +34,7 @@ public:
   Replayer();
   ~Replayer();
 
-  int LoadData(const char *fileName);
+  int LoadData(const char *fileName, const char *symbol = NULL);
   void UpdateKernelArgPool();
 
   uint64_t GetHexValue(std::string &line, const char *key);
@@ -50,7 +50,7 @@ public:
 
 private:
   int LoadVectorFile(const char *fileName);
-  int LoadHsacoFile(const char *fileName);
+  int LoadHsacoFile(const char *fileName, const char *symbol);
   void VCSubmitPacket(void);
   void HsacoSubmitPacket(void);
   //void HsacoSubmitPacket(HsacoAql *aql);

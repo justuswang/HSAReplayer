@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 
   replayer.CreateQueue(64, HSA_QUEUE_TYPE_MULTI);
 
-  ret = replayer.LoadData(g_opts.FileName());
+  ret = replayer.LoadData(g_opts.FileName(), g_opts.KernelSymbol());
   if (ret != 0)
     return ret;
   replayer.SetDataTypes(g_opts.KernArgTypes());

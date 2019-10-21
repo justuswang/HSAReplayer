@@ -142,6 +142,33 @@ hsa_status_t HSAMemoryObject::get_kernarg_memory_cb(hsa_region_t region, void *d
   return HSA_STATUS_INFO_BREAK;
 }
 
+std::ostream& HSAMemoryObject::Print(std::ostream &out)
+{
+  if (m_size == 0) {
+    out << "No data to print!" << std::endl;
+    return out;
+  }
+  //out << Name() << ":" << std::endl;
+  //out << m_seperator << std::endl;
+  if (m_dtype == VC_UINT32) {
+    for (size_t i = 0; i < Number<uint32_t>(); i++)
+      out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::endl;
+  } else if (m_dtype == VC_INT) {
+    for (size_t i = 0; i < Number<uint32_t>(); i++)
+      out << As<int*>()[i] << std::endl;
+  } else if (m_dtype == VC_FLOAT) {
+    for (size_t i = 0; i < Number<uint32_t>(); i++)
+      out << As<float*>()[i] << std::endl;
+  } else if (m_dtype == VC_DOUBLE) {
+    for (size_t i = 0; i < Number<uint64_t>(); i++)
+      out << As<double*>()[i] << std::endl;
+  } else { // default to show it as uint32_t
+    for (size_t i = 0; i < Number<uint32_t>(); i++)
+      out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::endl;
+  }
+  return out;
+}
+
 // ================================================================================
 // HSA Signal
 // ================================================================================

@@ -9,6 +9,7 @@
 #include <string>
 #include <iostream>
 #include <unistd.h> // close()
+#include <iomanip>
 #include "global.hpp"
 
 #define EXPECT_SUCCESS(val) assert(HSA_STATUS_SUCCESS == (val))
@@ -52,8 +53,12 @@ class HSAMemoryObject {
       return reinterpret_cast<DataType>(m_ptr);
     }
     template<typename T>
+    size_t Number() {
+      return m_size / sizeof(T);
+    }
+    template<typename T>
     void Fill(T value) {
-      for (size_t i = 0; i < m_size / sizeof(T); i++) reinterpret_cast<T*>(m_ptr)[i] = value;
+      for (size_t i = 0; i < Number<T>(); i++) reinterpret_cast<T*>(m_ptr)[i] = value;
     }
 
     void Fill(JsonKernArg *j_ka) {
@@ -66,6 +71,11 @@ class HSAMemoryObject {
       else
         std::cerr << "Unknown data type: " << j_ka->dType << std::endl;
     }
+    void SetDataType(VCDataType type) { m_dtype = type;}
+    std::ostream& Print(std::ostream &out);
+    friend std::ostream& operator<< (std::ostream &out, HSAMemoryObject &mem) {
+      return mem.Print(out);
+    };
 
   private:
     size_t m_size;
@@ -73,6 +83,7 @@ class HSAMemoryObject {
     MemoryRegionType m_type;
     void *m_ptr;
     hsa_region_t m_region;
+    VCDataType m_dtype;
 
     static hsa_status_t get_system_memory_cb(hsa_region_t region, void *data);
     static hsa_status_t get_local_memory_cb(hsa_region_t region, void *data);

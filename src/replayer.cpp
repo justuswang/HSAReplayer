@@ -284,6 +284,7 @@ void Replayer::HsacoSubmitPacket(JsonKernObj *aql, std::vector<std::unique_ptr<J
         kArg->mem.reset(new HSAMemoryObject(
                       kernArgs->at(i).get()->size * SizeOfType(kernArgs->at(i).get()->dType), m_agent, MEM_SYS));
         kArg->mem.get()->Fill(kernArgs->at(i).get());
+        kArg->mem.get()->SetDataType(kernArgs->at(i).get()->dType);
       } else if (kernArgs->at(i).get()->sType == HC_VALUE){
         memcpy(&kArg->value, &kernArgs->at(i).get()->value, sizeof(kArg->value));
       }
@@ -358,7 +359,9 @@ void Replayer::HsacoSubmitPacket(JsonKernObj *aql, std::vector<std::unique_ptr<J
   init_pkg_kernel_object();
   m_queue->SubmitPacket(packet);
 
-  for (int i = 0; i < kernArgs->at(2).get()->size; ++i) {
-    std::cout << kArgs[2]->mem.get()->As<float*>()[i] << std::endl;
+  for (size_t i = 0; i < kArgs.size(); ++i) {
+    if (kArgs[i].get()->sType == HC_ADDR) {
+      std::cout << *(kArgs[i]->mem.get()) << std::endl;
+    }
   }
 }

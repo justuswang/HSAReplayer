@@ -78,4 +78,15 @@ enum VCSectionType {
   VC_TYPE_MAX,
 };
 
+extern int g_debug_level;
+
+#define DBG(info)                                       \
+do {                                                    \
+  if (g_debug_level == 0)                               \
+    std::cout.setstate(std::ios_base::failbit);         \
+  std::cout << "=> " << info << std::endl;              \
+  if (g_debug_level == 0)                               \
+    std::cout.clear();                                  \
+} while (0)
+
 #endif /* GLOBAL_H__ */

@@ -16,10 +16,8 @@ int main(int argc, char **argv)
   ret = replayer.LoadData(g_opts.FileName(), g_opts.KernelSymbol());
   if (ret != 0)
     return ret;
-  replayer.SetDataTypes(g_opts.KernArgTypes());
 
-  std::cout << "g_opts hsaco aql dim: " << g_opts.KernObj()->dim << std::endl;
-  //replayer.SubmitPacket();
+  replayer.SetDataTypes(g_opts.KernArgTypes());
   replayer.SubmitPacket(g_opts.KernObj(), &g_opts.j_kernArgs);
 
   for (int i = 0; i < g_opts.TypeNum(); i++) {

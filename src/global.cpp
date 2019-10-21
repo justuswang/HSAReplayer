@@ -1,5 +1,7 @@
 #include "global.hpp"
 
+int g_debug_level = 0;
+
 VCDataType DataType(const char *type)
 {
   VCDataType t = VC_INVALID;

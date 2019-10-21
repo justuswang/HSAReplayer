@@ -223,12 +223,12 @@ hsa_status_t HSAExecutable::LoadCodeObject(const char *fileName, const char *ker
 
   m_fileName = fileName;
   m_kernelName = kernelName;
-  std::cout << "Code object file: " << m_fileName << std::endl;
-  std::cout << "Kernel name: " << m_kernelName << std::endl;
+  DBG("Code object file: " << m_fileName);
+  DBG("Kernel name: " << m_kernelName);
 
   int fd = open(m_fileName.c_str(), O_RDONLY);
   if (fd <= 0) {
-    std::cout << "Failed to open file: " << m_fileName << std::endl;
+    std::cerr << "Failed to open file: " << m_fileName << std::endl;
     return HSA_STATUS_ERROR;
   }
 

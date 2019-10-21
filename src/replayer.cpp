@@ -90,10 +90,12 @@ int Replayer::LoadVectorFile(const char *fileName)
                           GetHexValue(line, "offset"),
                           (GetHexValue(line, "addr") != 0),
                           GetHexValue(line, "bytes"), m_agent, MEM_SYS);
-      //if (sec->IsAddr()) {
-      //  std::cout << "Kernel Arg: " << sec->Index() << std::endl;
-      //  std::cout << "addr: 0x" << std::hex << (uint64_t)sec->As<void*>() << std::endl;
-      //}
+#if 0
+      if (sec->IsAddr()) {
+        std::cout << "Kernel Arg: " << sec->Index() << std::endl;
+        std::cout << "addr: 0x" << std::hex << (uint64_t)sec->As<void*>() << std::endl;
+      }
+#endif
       m_sections.push_back(sec);
     }
     
@@ -122,11 +124,12 @@ void Replayer::UpdateKernelArgPool()
           }
       }
   }
-
-  //std::cout << "Pools: " << std::endl;
-  //for (size_t j = 0; j < pool->Number<uint32_t>(); j++) {
-  //    std::cout << std::hex << pool->As<uint32_t*>()[j] << std::endl;
-  //}
+#if 0
+  std::cout << "Pools: " << std::endl;
+  for (size_t j = 0; j < pool->Number<uint32_t>(); j++) {
+      std::cout << std::hex << pool->As<uint32_t*>()[j] << std::endl;
+  }
+#endif
 }
 
 int Replayer::LoadHsacoFile(const char *fileName, const char *symbol)
@@ -141,11 +144,11 @@ int Replayer::LoadData(const char *fileName, const char *symbol)
   auto SetMode = [&] () -> int {
     std::string str(fileName);
     if (str.rfind(".hsaco") != std::string::npos) {
-      std::cout << "load .hsaco" << std::endl;
+      DBG("load .hsaco");
       m_mode = RE_HSACO;
     }
     else if (str.rfind(".rpl") != std::string::npos) {
-      std::cout << "load .rpl" << std::endl;
+      DBG("load .rpl");
       m_mode = RE_VC;
     } else {
       return -1;
@@ -305,7 +308,7 @@ void Replayer::HsacoSubmitPacket(JsonKernObj *aql, std::vector<std::unique_ptr<J
       }
       kArgs.push_back(std::unique_ptr<HsacoKernArg>(kArg));
     }
-    std::cout << "size of kArgs: " << kArgs.size() << std::endl;
+    DBG("size of kArgs: " << kArgs.size());
   };
 
   int num_of_kernargs = kernArgs->size();
@@ -336,10 +339,11 @@ void Replayer::HsacoSubmitPacket(JsonKernObj *aql, std::vector<std::unique_ptr<J
         set_kernarg_val(&p, kArgs[i].get());
       }
     }
-    // debug
-    for (int i = 0; i < 10; i++)
-      std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << mem_kernArgs.get()->As<uint32_t*>()[i] << std::endl;
-    std::cout << std::dec << std::endl;
+    DBG("generated kernel args:");
+    for (size_t i = 0; i < mem_kernArgs.get()->Size(); i++) {
+      DBG("0x" << std::setw(8) << std::setfill('0') << std::hex <<
+          mem_kernArgs.get()->As<uint32_t*>()[i] << std::dec << std::setw(0));
+    }
     packet.kernarg_address = mem_kernArgs.get()->As<void*>();
   };
 
@@ -375,6 +379,8 @@ void Replayer::HsacoSubmitPacket(JsonKernObj *aql, std::vector<std::unique_ptr<J
   init_pkg_kernel_object();
   m_queue->SubmitPacket(packet);
 
-  for (size_t i = 0; i < kArgs.size(); ++i)
+  for (size_t i = 0; i < kArgs.size(); ++i) {
+    std::cout << "kernel arg " << i << ":" << std::endl;
     std::cout << *(kArgs[i].get());
+  }
 }

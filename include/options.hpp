@@ -28,7 +28,6 @@ public:
     else
       return &kernArgs;
   }
-  bool Debug() const { return m_debug; }
   JsonKernObj* KernObj() { return &j_kernObj; }
   std::vector<std::unique_ptr<JsonKernArg>> j_kernArgs;
 
@@ -46,7 +45,6 @@ private:
   std::vector<VCDataType> kernArgs;
   std::vector<VCSectionType> m_type; // include all
   int m_type_cnt;
-  bool m_debug;
 
   JsonKernObj j_kernObj;
 };

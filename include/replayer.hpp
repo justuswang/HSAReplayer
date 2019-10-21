@@ -26,6 +26,10 @@ public:
       float f;
       double d;
   }value;
+  std::ostream& Print(std::ostream &out);
+  friend std::ostream& operator<< (std::ostream &out, HsacoKernArg &ka) {
+    return ka.Print(out);
+  };
 };
 
 

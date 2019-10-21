@@ -265,6 +265,21 @@ void Replayer::SubmitPacket(JsonKernObj *aql, std::vector<std::unique_ptr<JsonKe
     std::cerr << "Unknown replay mode!" << std::endl;
 }
 
+std::ostream& HsacoKernArg::Print(std::ostream &out)
+{
+  if (sType == HC_ADDR) {
+    out << *(mem.get()) << std::endl;
+  } else {
+    if (dType == VC_INT)
+      out << value.i << std::endl;
+    else if (dType == VC_FLOAT)
+      out << value.f << std::endl;
+    else if (dType == VC_DOUBLE)
+      out << value.d << std::endl;
+  }
+  return out;
+}
+
 void Replayer::HsacoSubmitPacket(JsonKernObj *aql, std::vector<std::unique_ptr<JsonKernArg>> *kernArgs)
 {
   if (aql == NULL || kernArgs == NULL || kernArgs->size() == 0) {
@@ -324,6 +339,7 @@ void Replayer::HsacoSubmitPacket(JsonKernObj *aql, std::vector<std::unique_ptr<J
     // debug
     for (int i = 0; i < 10; i++)
       std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << mem_kernArgs.get()->As<uint32_t*>()[i] << std::endl;
+    std::cout << std::dec << std::endl;
     packet.kernarg_address = mem_kernArgs.get()->As<void*>();
   };
 
@@ -359,9 +375,6 @@ void Replayer::HsacoSubmitPacket(JsonKernObj *aql, std::vector<std::unique_ptr<J
   init_pkg_kernel_object();
   m_queue->SubmitPacket(packet);
 
-  for (size_t i = 0; i < kArgs.size(); ++i) {
-    if (kArgs[i].get()->sType == HC_ADDR) {
-      std::cout << *(kArgs[i]->mem.get()) << std::endl;
-    }
-  }
+  for (size_t i = 0; i < kArgs.size(); ++i)
+    std::cout << *(kArgs[i].get());
 }

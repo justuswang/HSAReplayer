@@ -152,7 +152,7 @@ std::ostream& HSAMemoryObject::Print(std::ostream &out)
   //out << m_seperator << std::endl;
   if (m_dtype == VC_UINT32) {
     for (size_t i = 0; i < Number<uint32_t>(); i++)
-      out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::endl;
+      out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::dec << std::endl;
   } else if (m_dtype == VC_INT) {
     for (size_t i = 0; i < Number<uint32_t>(); i++)
       out << As<int*>()[i] << std::endl;
@@ -164,7 +164,7 @@ std::ostream& HSAMemoryObject::Print(std::ostream &out)
       out << As<double*>()[i] << std::endl;
   } else { // default to show it as uint32_t
     for (size_t i = 0; i < Number<uint32_t>(); i++)
-      out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::endl;
+      out << "0x" << std::setw(8) << std::setfill('0') << std::hex << As<uint32_t*>()[i] << std::dec <<std::endl;
   }
   return out;
 }

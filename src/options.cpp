@@ -48,11 +48,11 @@ void Options::ParseJson()
   // hsaco
   DBG("hsaco kernel object: " << j[HSACO_KERN_OBJ].size());
 
-  std::string str = j[HSACO_KERN_OBJ]["symbol"].dump();
-  m_symbol = str.substr(1, str.size() - 2);
-  DBG("hsaco kernel symbol: " << m_symbol);
-
   if (j[HSACO_KERN_OBJ].size() > 0) {
+    std::string str = j[HSACO_KERN_OBJ]["symbol"].dump();
+    m_symbol = str.substr(1, str.size() - 2);
+    DBG("hsaco kernel symbol: " << m_symbol);
+
     j_kernObj.SetAll(j[HSACO_KERN_OBJ]["dim"],
                     j[HSACO_KERN_OBJ]["workgroup_size_x"],
                     j[HSACO_KERN_OBJ]["workgroup_size_y"],

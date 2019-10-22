@@ -32,6 +32,7 @@ void VCSection::SetValue(std::string &str)
   if (!IsAddr())
     return;
 
+  str = str.substr(str.length() - 10, str.length());
   if (str.find("0x") != std::string::npos) {
     if (OutOfMemory(m_pos)) {
       std::cerr << "Out of memory size!" << std::endl;

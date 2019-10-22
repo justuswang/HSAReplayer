@@ -20,7 +20,7 @@ void Options::PrintHelp()
      2: Kernel Arg Pool\n\
      3: Kernel Args\n\
      4: All sections\n"
-    "  -d show debug info\n"
+    "  -v show debug info\n"
     "  -h show this help info";
 
   std::cout << helpInfo << std::endl;
